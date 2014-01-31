@@ -192,22 +192,34 @@
 				var timeByteData = new Uint8Array(this.scopeNode.frequencyBinCount);
 				this.scopeNode.getByteTimeDomainData(timeByteData);
 
-				barWidth /=3;
-				barCount *=3;
-				
 				var middle = height/2;
 				ctx.beginPath();
 				ctx.lineWidth = 2;
 				ctx.strokeStyle = "#000";
 
-				for (i = 0; i < barCount; i++) {
-					var x = i * barWidth+5;
-					var y = middle + +timeByteData[Math.round(timeByteData.length/barCount) * i]/128 * (middle/2);
-					if (i == 0) {
-						ctx.moveTo(x,y);
+				// if we have more width than datapoints, draw per datapoint.
+				// otherwise, draw per pixel.
+				if (width > timeByteData.length) {
+					for (i = 0; i < timeByteData.length; i++) {
+						var pixel = Math.round(width*i/timeByteData.length);
+						var y = middle + timeByteData[i]/256 * middle;
+						if (i==0) {
+							ctx.moveTo(pixel,y);
+						}
+						ctx.lineTo(pixel,y);
 					}
-					ctx.lineTo(x,y);
+				} else {
+					// more datapoints than pixels
+					for (i = 0; i < width; i++) {
+						// we can't show everything, so just show what we have
+						var y = middle + timeByteData[i]/256 * middle;
+						if (i==0) {
+							ctx.moveTo(i,y);
+						}
+						ctx.lineTo(i,y);
+					}
 				}
+
 				ctx.stroke();
 
 				if (this.__speedMultiplier !== 1 || this.__dragging === true) {
