@@ -1,5 +1,10 @@
 'use strict';
 
+// Quick & Dirty reference:
+// no prefix: method
+//  _ prefix: event handler
+// __ prefix: variable
+
 (function (wnd,doc,console,$) {
 	(function () {
 		// feature detection
