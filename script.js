@@ -17,8 +17,38 @@
 			__interval: null,
 			__introSource: null,
 			__loopSource: null,
+			__dragging: false,
+			__dragStartY: null,
+			__speedMultiplier: 1,
+
+			_onMouseDown: function (e) {
+				this.__dragging = true;
+				this._onMouseMove(e);
+			},
+
+			_onMouseUp: function (e) {
+				this.__dragging = false;
+				e.preventDefault();
+			},
+
+			_onMouseMove: function (e) {
+				if (this.__dragging === false) {
+					return;
+				}
+				this.__speedMultiplier = ((wnd.innerHeight- e.pageY) / wnd.innerHeight) * 2;
+				this.__introSource.playbackRate.value = this.__speedMultiplier;
+				this.__loopSource.playbackRate.value = this.__speedMultiplier;
+				e.preventDefault();
+			},
+
+			addMouseListeners: function () {
+				wnd.addEventListener("mousedown", this._onMouseDown.bind(this), false);
+				wnd.addEventListener("mouseup", this._onMouseUp.bind(this), false);
+				wnd.addEventListener("mousemove", this._onMouseMove.bind(this), false);
+			},
 
 			_onLoadNoFeatures : function () {
+				console.error("We cannot proceed because a required feature is missing");
 				doc.getElementsByClassName("H3")[0].innerHTML = 
 					"DEVICE/BROWSER NOT SUPPORTED :-(";
 			},
@@ -161,6 +191,7 @@
 				barCount *=3;
 				
 				var middle = height/2;
+				ctx.beginPath();
 				ctx.lineWidth = 2;
 				ctx.strokeStyle = "#000";
 
@@ -173,6 +204,18 @@
 					ctx.lineTo(x,y);
 				}
 				ctx.stroke();
+
+				if (this.__speedMultiplier !== 1 || this.__dragging === true) {
+					ctx.beginPath();
+					var y = height - height*(this.__speedMultiplier/2);
+					ctx.strokeStyle = "#711";
+					ctx.moveTo(0,y);
+					ctx.lineTo(width,y);
+					ctx.stroke();
+					ctx.font = '22px Monospace';
+					ctx.fillStyle = "#711";
+					ctx.fillText("SPEED MULT: " + this.__speedMultiplier.toFixed(4),10,y-10);
+				}
 			},
 
 			startPlayback : function () {
@@ -191,6 +234,7 @@
 				this.__startTime = new Date();
 				clearInterval(this.__interval);
 				requestAnimationFrame(this._onAnimateFrame.bind(this));
+				setTimeout(this.addMouseListeners.bind(this),this.__introSource.buffer.duration*1000);
 			}
 		}
 	);
