@@ -34,11 +34,17 @@
 
 				var source = this.__context.createBufferSource();
 
-				var soundsToLoad = ["intro.ogg", "loop.ogg"];
+				var directory = "punkish";
+				if (wnd.location.search.length > 0) {
+					directory = wnd.location.search.substring(1);
+				}
+				var soundsToLoad = [directory+"/intro.ogg", directory+"/loop.ogg"];
 				this.buffers = [null,null];
 				this.scopeNode = this.__context.createAnalyser();
 				this.scopeNode.connect(this.__context.destination);
 				this.scopeNode.maxDecibels = -1;
+
+				this.downloadSongMetaData(directory);
 
 				soundsToLoad.forEach(function (name, i) {
 					var req = new XMLHttpRequest();
@@ -58,6 +64,16 @@
 					}.bind(this);
 					req.send();
 				}, this);
+			},
+
+			downloadSongMetaData : function (directory) {
+				var req = new XMLHttpRequest();
+				req.open('GET', directory+"/details.json", true);
+				req.onload = function () {
+					var data = JSON.parse(req.response);
+					$("h2").innerHTML = data.title;
+				}.bind(this);
+				req.send();
 			},
 
 			updateTimer : function () {
