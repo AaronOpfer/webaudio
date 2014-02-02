@@ -27,9 +27,11 @@
 			__speedMultiplier: 1,
 			__frameCount: 0,
 
+			/**
+			 * Called when the twitter share button is clicked, and updates
+			 * the URL so that the tweet contains the current timestamp.
+			 */
 			_onTwitterClick: function (e) {
-				// update the Tweet text to reflect current time
-				//
 				var tweetPhrases = ["Sick beat","Tasty Jam"];
 
 				var delta = new Date() - this.__startTime;
@@ -51,6 +53,10 @@
 					+ encodeURIComponent(tweetMessage);
 			},
 
+			/**
+			 * Called when the facebook link is clicked. Puts the correct URL
+			 * in the link.
+			 */
 			_onFacebookClick: function (e) {
 				// Update href on facebook to reflect current URL
 				// probably better as either a compile-time thing or a
@@ -61,6 +67,9 @@
 					+ encodeURIComponent(wnd.location.href);
 			},
 
+			/**
+			 * The user has initated a change in playback speed.
+			 */
 			_onMouseDown: function (e) {
 				if (e.target !== $("canvas")) {
 					return;
@@ -69,11 +78,18 @@
 				this._onMouseMove(e);
 			},
 
+			/**
+			 * The user has stopped changing the playback speed.
+			 */
 			_onMouseUp: function (e) {
 				this.__dragging = false;
 				e.preventDefault();
 			},
 
+			/**
+			 * Called when the mouse is moved in order to change the playback
+			 * speed.
+			 */
 			_onMouseMove: function (e) {
 				if (this.__dragging === false) {
 					return;
@@ -84,18 +100,32 @@
 				e.preventDefault();
 			},
 
+			/**
+			 * Adds event listeners to the window for changing the playback
+			 * speed. This lives in a separate function because these are not
+			 * active right away. They are added once the intro segment has
+			 * finished to prevent timing problems.
+			 */
 			addMouseListeners: function () {
 				wnd.addEventListener("mousedown", this._onMouseDown.bind(this), false);
 				wnd.addEventListener("mouseup", this._onMouseUp.bind(this), false);
 				wnd.addEventListener("mousemove", this._onMouseMove.bind(this), false);
 			},
 
+			/**
+			 * Called if any features that we require are missing from the
+			 * browser.
+			 */
 			_onLoadNoFeatures : function () {
 				console.error("We cannot proceed because a required feature is missing");
 				doc.getElementsByClassName("H3")[0].innerHTML = 
 					"DEVICE/BROWSER NOT SUPPORTED :-(";
 			},
 
+			/**
+			 * Initializes virtually everything, esp. the audio contexts and
+			 * most event listeners.
+			 */
 			_onLoad : function () {
 				// display loading dots
 				this.__interval = setInterval(this._loadOnInterval.bind(this),111);
@@ -145,6 +175,13 @@
 				}, this);
 			},
 
+			/**
+			 * Downloads metadata related to the current song. Currently this
+			 * is just the song title.
+			 *
+			 * @param directory {String} The subdirectory representing the song
+			 *  whose metadata needs to be retrieved.
+			 */
 			downloadSongMetaData : function (directory) {
 				var req = new XMLHttpRequest();
 				req.open('GET', directory+"/details.json", true);
@@ -155,6 +192,10 @@
 				req.send();
 			},
 
+			/**
+			 * Renders the timer (HTML element) that shows how long the user
+			 * has been listening for
+			 */
 			updateTimer : function () {
 				var delta = new Date() - this.__startTime;
 				var ms = delta % 1000;
@@ -172,6 +213,10 @@
 				$("h3").innerHTML = [pad2(hours),pad2(minutes),pad2(seconds),pad3(ms)].join(":");
 			},
 
+			/**
+			 * Prints a moving loading dot while content is being loaded and
+			 * decoded.
+			 */
 			_loadOnInterval: function () {
 				var dotSpan = $("h3 span");
 				if (!dotSpan) {
@@ -193,6 +238,9 @@
 				}
 			},
 
+			/**
+			 * Dispatcher for on-frame-rendering activities.
+			 */
 			_onAnimateFrame: function () {
 				this.__frameCount++;
 				this.updateTimer();
@@ -200,6 +248,15 @@
 				wnd.requestAnimationFrame(this._onAnimateFrame.bind(this));
 			},
 
+			/**
+			 * Computes a CSS color that is percent between startColor and
+			 * endColor.
+			 *
+			 * @param startColor {Integer} the start color. Notice that this
+			 *   is not a string. (0xFF00FF okay, "#FF00FF" is not)
+			 * @param endColor {Integer} the end color.
+			 * @param percent {Float} Value between 0.0 and 1.0.
+			 */
 			computeGradient : function (startColor,endColor,percent) {
 				var r1 = startColor >> 16,
 				g1 = (startColor >> 8) & 0xFF,
@@ -214,6 +271,10 @@
 					(0|(percent*b1 + (1-percent)*b2)).toString() + ')';
 			},
 
+			/**
+			 * Renders the canvas element. This incldes a frequency band graph
+			 * as well as an oscilliator.
+			 */
 			renderCanvas : function () {
 				var canvas = $('canvas');
 				var ctx = canvas.getContext('2d');
@@ -230,7 +291,7 @@
 				var barCount = Math.round(width / barWidth);
 				for (var i = 0; i < barCount; i++) {
 					var magnitude = freqByteData[i];
-					ctx.fillStyle = this.computeGradient(0x0000FF,0x000077,1-(magnitude/355));
+					ctx.fillStyle = this.computeGradient(0x0000FF,0x000077,1-(magnitude/355)); // 355 keeps bars away from text
 					ctx.fillRect(barWidth * i, height, barWidth - 2, -(magnitude/255*height));
 				}
 
@@ -280,6 +341,11 @@
 				}
 			},
 
+			/**
+			 * Hooks all of the audio nodes to the context such that playback
+			 * can begin, and then does some runtime initialization of other
+			 * components.
+			 */
 			startPlayback : function () {
 				this.__introSource = this.__context.createBufferSource();
 				this.__loopSource = this.__context.createBufferSource();
@@ -300,8 +366,7 @@
 			}
 		}
 	);
-}).call(
-	null,
+})(
 	window,
 	document,
 	console || { log: function(){},debug: function (){}, warn: function(){}, error: function () {}},
