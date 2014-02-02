@@ -22,6 +22,7 @@
 			__interval: null,
 			__introSource: null,
 			__loopSource: null,
+			__scopeNode: null,
 			__dragging: false,
 			__dragStartY: null,
 			__speedMultiplier: 1,
@@ -149,9 +150,9 @@
 				}
 				var soundsToLoad = [directory+"/intro.ogg", directory+"/loop.ogg"];
 				this.buffers = [null,null];
-				this.scopeNode = this.__context.createAnalyser();
-				this.scopeNode.connect(this.__context.destination);
-				this.scopeNode.maxDecibels = -1;
+				this.__scopeNode = this.__context.createAnalyser();
+				this.__scopeNode.connect(this.__context.destination);
+				this.__scopeNode.maxDecibels = -1;
 
 				this.downloadSongMetaData(directory);
 
@@ -281,22 +282,22 @@
 				var width = canvas.width = wnd.innerWidth;
 				var height = canvas.height = wnd.innerHeight;
 				var barWidth = 10;
+				var barCount = Math.round(width / barWidth);
 
 				ctx.clearRect(0, 0, width, height);
 
-				var freqByteData = new Uint8Array(this.scopeNode.frequencyBinCount);
-				this.scopeNode.getByteFrequencyData(freqByteData);
+				var freqByteData = new Uint8Array(this.__scopeNode.frequencyBinCount);
+				this.__scopeNode.getByteFrequencyData(freqByteData);
 
 				
-				var barCount = Math.round(width / barWidth);
 				for (var i = 0; i < barCount; i++) {
 					var magnitude = freqByteData[i];
 					ctx.fillStyle = this.computeGradient(0x0000FF,0x000077,1-(magnitude/355)); // 355 keeps bars away from text
 					ctx.fillRect(barWidth * i, height, barWidth - 2, -(magnitude/255*height));
 				}
 
-				var timeByteData = new Uint8Array(this.scopeNode.frequencyBinCount);
-				this.scopeNode.getByteTimeDomainData(timeByteData);
+				var timeByteData = new Uint8Array(this.__scopeNode.frequencyBinCount);
+				this.__scopeNode.getByteTimeDomainData(timeByteData);
 
 				var middle = height/2;
 				ctx.beginPath();
@@ -353,8 +354,8 @@
 				this.__introSource.buffer = this.buffers[0];
 				this.__loopSource.buffer = this.buffers[1];
 
-				this.__loopSource.connect(this.scopeNode);
-				this.__introSource.connect(this.scopeNode);
+				this.__loopSource.connect(this.__scopeNode);
+				this.__introSource.connect(this.__scopeNode);
 
 				this.__loopSource.loop = true;
 				this.__introSource.start(this.__context.currentTime);
