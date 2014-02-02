@@ -25,8 +25,46 @@
 			__dragging: false,
 			__dragStartY: null,
 			__speedMultiplier: 1,
+			__frameCount: 0,
+
+			_onTwitterClick: function (e) {
+				// update the Tweet text to reflect current time
+				//
+				var tweetPhrases = ["Sick beat","Tasty Jam"];
+
+				var delta = new Date() - this.__startTime;
+				var ms = delta % 1000;
+				var seconds = (delta/1000)%60|0;
+				var minutes = (delta/(60*1000))%60|0;
+				var hours = (delta/(60*60*1000))|0;
+
+				var tweetMessage = "Listened to this "
+					+ tweetPhrases[this.__frameCount%2]
+					+ " for "
+					+ ((hours > 0) ? (hours.toString()+"h") : "")
+					+ ((minutes > 0) ? (minutes.toString()+"m") : "")
+					+ seconds.toString()
+					+ "s!";
+
+				e.target.href = 
+					"https://twitter.com/share?text=" 
+					+ encodeURIComponent(tweetMessage);
+			},
+
+			_onFacebookClick: function (e) {
+				// Update href on facebook to reflect current URL
+				// probably better as either a compile-time thing or a
+				// onLoad thing, but maybe we'll use HTML5 history or
+				// something.
+				$("#fb").href = 
+					"https://www.facebook.com/sharer/sharer.php?u="
+					+ encodeURIComponent(wnd.location.href);
+			},
 
 			_onMouseDown: function (e) {
+				if (e.target !== $("canvas")) {
+					return;
+				}
 				this.__dragging = true;
 				this._onMouseMove(e);
 			},
@@ -61,6 +99,12 @@
 			_onLoad : function () {
 				// display loading dots
 				this.__interval = setInterval(this._loadOnInterval.bind(this),111);
+
+				// set up Facebook click listener
+				$("#fb").addEventListener("click", this._onFacebookClick.bind(this), false);
+
+				// add tweet click listener
+				$("#tw").addEventListener("click", this._onTwitterClick.bind(this), false);
 
 				// allocate a context
 				var AudioContext = wnd.AudioContext || wnd.webkitAudioContext;
@@ -150,6 +194,7 @@
 			},
 
 			_onAnimateFrame: function () {
+				this.__frameCount++;
 				this.updateTimer();
 				this.renderCanvas();
 				wnd.requestAnimationFrame(this._onAnimateFrame.bind(this));

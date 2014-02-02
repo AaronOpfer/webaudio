@@ -1,12 +1,17 @@
-<HTML class=loading>
+<HTML>
 <HEAD>
 <link href='http://fonts.googleapis.com/css?family=Roboto:100' rel='stylesheet' type='text/css'>
 <meta name="viewport" content="width=device-width, user-scalable=no">
 <STYLE>
 body, html { background-color: rgb(22, 0, 26); margin: 0;margin-top: 30px; border: 0; font-family: 'Roboto', sans-serif; color: #aab; }
-canvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0}
-h1, h2, h3 { text-align:center;}
+canvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1}
+#content { position: relative; z-index: 2; text-align: center }
 
+h1, h2, h3 { text-align:center;}
+.social { border: 2px solid #556; border-radius: 7px; padding: 2px; margin: 4px; width: 24px; height: 24px; background-size: 24px; display: inline-block; background-position: center; background-repeat: no-repeat; }
+.social:hover { border-color: #aab; }
+#fb { background-image: url('fb.png'); } #fb:hover { background-image: url('fb-h.png') }
+#tw { background-image: url('tw.png'); } #tw:hover { background-image: url('tw-h.png') }
 h1 { font-size: 42px; }
 h2 { font-size: 32px; }
 h3 { font-size: 22px; font-family: monospace; font-weight: 100; color: #778;}
@@ -18,9 +23,12 @@ h3 { font-size: 22px; font-family: monospace; font-weight: 100; color: #778;}
 <SCRIPT src="script.js"></SCRIPT>
 </HEAD>
 <BODY>
-<H1>AARON OPFER</H1>
-<H2>...</H2>
-<H3>LOADING<SPAN id=dots>&nbsp;&nbsp;&nbsp;</SPAN></H3>
+<DIV id=content>
+	<H1>AARON OPFER</H1>
+	<H2>...</H2>
+	<H3>LOADING<SPAN id=dots>&nbsp;&nbsp;&nbsp;</SPAN></H3>
+	<a class=social id=fb target="_blank"></a><a title="Share on Twitter" href="https://twitter.com/share" class=social id=tw target="_blank"></a>
+</DIV>
 <CANVAS id=canvas></CANVAS>
 </BODY>
 </HTML>
