@@ -27,6 +27,7 @@
 			__dragStartY: null,
 			__speedMultiplier: 1,
 			__frameCount: 0,
+			__peakData: null,
 
 			/**
 			 * Called when the twitter share button is clicked, and updates
@@ -289,11 +290,20 @@
 				var freqByteData = new Uint8Array(this.__scopeNode.frequencyBinCount);
 				this.__scopeNode.getByteFrequencyData(freqByteData);
 
+				if (!this.__peakData || this.__peakData.length !== barCount) {
+					this.__peakData = Array(barCount);
+				}
 				
 				for (var i = 0; i < barCount; i++) {
 					var magnitude = freqByteData[i];
 					ctx.fillStyle = this.computeGradient(0x0000FF,0x000077,1-(magnitude/355)); // 355 keeps bars away from text
 					ctx.fillRect(barWidth * i, height, barWidth - 2, -(magnitude/255*height));
+					if (!this.__peakData[i] || magnitude > this.__peakData[i]) {
+						this.__peakData[i] = magnitude;
+					} else {
+						this.__peakData[i]-= 1 + (this.__frameCount%3==1); // descend at 1.33
+					}
+					ctx.fillRect(barWidth * i, height-this.__peakData[i]/255*height, barWidth -2, 2);
 				}
 
 				var timeByteData = new Uint8Array(this.__scopeNode.frequencyBinCount);
