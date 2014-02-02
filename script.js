@@ -139,7 +139,7 @@
 			 */
 			_onLoadNoFeatures : function () {
 				console.error("We cannot proceed because a required feature is missing");
-				doc.getElementsByClassName("H3")[0].innerHTML = 
+				doc.getElementsByTagName("H3")[0].innerHTML =
 					"DEVICE/BROWSER NOT SUPPORTED :-(";
 			},
 
