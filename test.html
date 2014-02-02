@@ -15,6 +15,8 @@ h1, h2, h3 { text-align:center;}
 h1 { font-size: 42px; }
 h2 { font-size: 32px; }
 h3 { font-size: 22px; font-family: monospace; font-weight: 100; color: #778;}
+select { box-sizing: content-box; margin: 4px 1px !important; background: transparent; color: #666; vertical-align: top; -webkit-appearance: none; text-indent:100%; white-space: nowrap; overflow: hidden; background-image: url('select.png'); outline: 0}
+select:hover { background-image: url('select-h.png'); }
 @media screen and (max-height: 700px) {
 	html,body { margin-top: 10px }
 	h1, h2, h3 { display: inline; margin: 0 10px; }
@@ -27,6 +29,11 @@ h3 { font-size: 22px; font-family: monospace; font-weight: 100; color: #778;}
 	<H1>AARON OPFER</H1>
 	<H2>...</H2>
 	<H3>LOADING<SPAN id=dots>&nbsp;&nbsp;&nbsp;</SPAN></H3>
+	<select class=social id=directory>
+		<option value=punkish>PUNKISH</option>
+		<option value=dangerous>DANGEROUS ROAD</option>
+		<option value=simplicity>SOME SIMPLICITY</option>
+	</select>
 	<a title="Share on Facebook" href="https://www.facebook.com/sharer/sharer.php" class=social id=fb target="_blank"></a><a title="Share on Twitter" href="https://twitter.com/share" class=social id=tw target="_blank"></a>
 </DIV>
 <CANVAS id=canvas></CANVAS>

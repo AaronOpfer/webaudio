@@ -17,19 +17,35 @@
 		}
 	}).call(
 		{
-			__startDate: null,
+			__startTime: null,
 			__context: null,
 			__interval: null,
 			__introSource: null,
 			__loopSource: null,
 			__scopeNode: null,
+			__gainNode: null,
 			__dragging: false,
-			__dragStartY: null,
 			__speedMultiplier: 1,
 			__frameCount: 0,
 			__peakData: null,
 			__primaryColor: "#000077",
 			__secondaryColor: "#0000FF",
+			__directory: null,
+			__introEndTime: null,
+
+			/**
+			 * Handles the user selecting a different song from the dropdown list.
+			 */
+			_onSongChange: function (e) {
+				var newSong = e.target.value;
+				if (newSong === this.__directory) {
+					return;
+				}
+				this.__gainNode.gain.linearRampToValueAtTime(1,this.__context.currentTime);
+				this.__gainNode.gain.linearRampToValueAtTime(0,this.__context.currentTime+0.2);
+				this.__startTime = null;
+				this.loadDirectory(newSong);
+			},
 
 			/**
 			 * Called when the twitter share button is clicked, and updates
@@ -75,7 +91,8 @@
 			 * The user has initated a change in playback speed.
 			 */
 			_onMouseDown: function (e) {
-				if (e.target !== $("canvas")) {
+				if (e.target !== $("canvas") || 
+						this.__context.currentTime < this.__introEndTime) {
 					return;
 				}
 				this.__dragging = true;
@@ -131,33 +148,49 @@
 			 * most event listeners.
 			 */
 			_onLoad : function () {
-				// display loading dots
-				this.__interval = setInterval(this._loadOnInterval.bind(this),111);
-
 				// set up Facebook click listener
 				$("#fb").addEventListener("click", this._onFacebookClick.bind(this), false);
 
 				// add tweet click listener
 				$("#tw").addEventListener("click", this._onTwitterClick.bind(this), false);
 
+				// add song change listener
+				$("#directory").addEventListener("change", this._onSongChange.bind(this), false);
+
+				requestAnimationFrame(this._onAnimateFrame.bind(this));
+
 				// allocate a context
 				var AudioContext = wnd.AudioContext || wnd.webkitAudioContext;
 				this.__context = new AudioContext();
 				console.debug("Got a context");
 
-				var source = this.__context.createBufferSource();
+				// Make the pluming
+				this.__scopeNode = this.__context.createAnalyser();
+				this.__gainNode = this.__context.createGain();
+				this.__gainNode.connect(this.__scopeNode);
+				this.__scopeNode.connect(this.__context.destination);
+				this.__scopeNode.maxDecibels = -1;
 
 				var directory = "punkish";
 				if (wnd.location.search.length > 0) {
 					directory = wnd.location.search.substring(1);
 				}
-				var soundsToLoad = [directory+"/intro.ogg", directory+"/loop.ogg"];
-				this.buffers = [null,null];
-				this.__scopeNode = this.__context.createAnalyser();
-				this.__scopeNode.connect(this.__context.destination);
-				this.__scopeNode.maxDecibels = -1;
+				this.loadDirectory(directory);
+			},
 
-				this.downloadSongMetaData(directory);
+			/**
+			 * Starts the loading of the given musical selection
+			 */
+			loadDirectory: function (directory) {
+				$('h3').innerHTML = "LOADING<SPAN id=dots>&nbsp;&nbsp;&nbsp;</SPAN>";
+				// display loading dots
+				this.__interval = setInterval(this._loadOnInterval.bind(this),111);
+
+				this.__directory = directory;
+				var soundsToLoad = [this.__directory+"/intro.ogg", this.__directory+"/loop.ogg"];
+				this.buffers = [null,null];
+
+				this.downloadSongMetaData(this.__directory);
 
 				soundsToLoad.forEach(function (name, i) {
 					var req = new XMLHttpRequest();
@@ -177,6 +210,7 @@
 					}.bind(this);
 					req.send();
 				}, this);
+
 			},
 
 			/**
@@ -193,9 +227,13 @@
 					var data = JSON.parse(req.response);
 					$("h2").innerHTML = data.title;
 					if ('colors' in data) {
-						data.__primaryColor = data.colors.primary;
-						data.__secondaryColor = data.colors.secondary;
+						this.__primaryColor = data.colors.primary;
+						this.__secondaryColor = data.colors.secondary;
+					} else {
+						this.__primaryColor = "#000077";
+						this.__secondaryColor = "#0000FF";
 					}
+
 				}.bind(this);
 				req.send();
 			},
@@ -205,6 +243,9 @@
 			 * has been listening for
 			 */
 			updateTimer : function () {
+				if (!this.__startTime) {
+					return;
+				}
 				var delta = new Date() - this.__startTime;
 				var ms = delta % 1000;
 				var seconds = (delta/1000)%60|0;
@@ -328,7 +369,7 @@
 				if (width > timeByteData.length) {
 					for (i = 0; i < timeByteData.length; i++) {
 						var pixel = Math.round(width*i/timeByteData.length);
-						var y = middle + timeByteData[i]/256 * middle;
+						var y = height - (middle + timeByteData[i]/256 * middle);
 						if (i==0) {
 							ctx.moveTo(pixel,y);
 						}
@@ -338,7 +379,7 @@
 					// more datapoints than pixels
 					for (i = 0; i < width; i++) {
 						// we can't show everything, so just show what we have
-						var y = middle + timeByteData[i]/256 * middle;
+						var y = height - (middle + timeByteData[i]/256 * middle);
 						if (i==0) {
 							ctx.moveTo(i,y);
 						}
@@ -367,22 +408,54 @@
 			 * components.
 			 */
 			startPlayback : function () {
+				if (this.__introSource) {
+					this.__introSource.disconnect();
+				}
+				if (this.__loopSource) {
+					this.__loopSource.disconnect();
+				}
+
+				this.__speedMultiplier = 1;
+
 				this.__introSource = this.__context.createBufferSource();
 				this.__loopSource = this.__context.createBufferSource();
 
 				this.__introSource.buffer = this.buffers[0];
 				this.__loopSource.buffer = this.buffers[1];
 
-				this.__loopSource.connect(this.__scopeNode);
-				this.__introSource.connect(this.__scopeNode);
+				this.__loopSource.connect(this.__gainNode);
+				this.__introSource.connect(this.__gainNode);
+
+				this.__gainNode.gain.cancelScheduledValues(0);
+				this.__gainNode.gain.linearRampToValueAtTime(1,this.__context.currentTime);
+				this.__gainNode.gain.value = 1;
 
 				this.__loopSource.loop = true;
+				this.__introEndTime = this.__context.currentTime+this.__introSource.buffer.duration;
 				this.__introSource.start(this.__context.currentTime);
-				this.__loopSource.start(this.__context.currentTime+this.__introSource.buffer.duration);
+				this.__loopSource.start(this.__introEndTime);
 				this.__startTime = new Date();
 				clearInterval(this.__interval);
-				requestAnimationFrame(this._onAnimateFrame.bind(this));
 				setTimeout(this.addMouseListeners.bind(this),this.__introSource.buffer.duration*1000);
+			},
+
+			/**
+			 * Puts a particular audio node into the chain between the
+			 * music sources and the scope. If null, removes any effect
+			 * node from the chain. Only one node can be the intermediate
+			 * node at a time.
+			 */
+			setMixerNode: function (node) {
+				this.__introSource.disconnect();
+				this.__loopSource.disconnect();
+
+				if (node) {
+					node.connect(this.__gainNode);
+				} else {
+					node = this.__gainNode;
+				}
+				this.__introSource.connect(node);
+				this.__loopSource.connect(node);
 			}
 		}
 	);
