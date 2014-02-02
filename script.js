@@ -225,7 +225,7 @@
 				req.open('GET', directory+"/details.json", true);
 				req.onload = function () {
 					var data = JSON.parse(req.response);
-					$("h2").innerHTML = data.title;
+					$("#song").innerHTML = data.title;
 					if ('colors' in data) {
 						this.__primaryColor = data.colors.primary;
 						this.__secondaryColor = data.colors.secondary;
