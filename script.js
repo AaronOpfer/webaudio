@@ -28,6 +28,8 @@
 			__speedMultiplier: 1,
 			__frameCount: 0,
 			__peakData: null,
+			__primaryColor: "#000077",
+			__secondaryColor: "#0000FF",
 
 			/**
 			 * Called when the twitter share button is clicked, and updates
@@ -190,6 +192,10 @@
 				req.onload = function () {
 					var data = JSON.parse(req.response);
 					$("h2").innerHTML = data.title;
+					if ('colors' in data) {
+						data.__primaryColor = data.colors.primary;
+						data.__secondaryColor = data.colors.secondary;
+					}
 				}.bind(this);
 				req.send();
 			},
@@ -296,7 +302,10 @@
 				
 				for (var i = 0; i < barCount; i++) {
 					var magnitude = freqByteData[i];
-					ctx.fillStyle = this.computeGradient(0x0000FF,0x000077,1-(magnitude/355)); // 355 keeps bars away from text
+					ctx.fillStyle = this.computeGradient(
+							parseInt(this.__secondaryColor.substring(1),16),
+							parseInt(this.__primaryColor.substring(1),16),
+							1-(magnitude/355)); // 355 keeps bars away from text
 					ctx.fillRect(barWidth * i, height, barWidth - 2, -(magnitude/255*height));
 					if (!this.__peakData[i] || magnitude > this.__peakData[i]) {
 						this.__peakData[i] = magnitude;
@@ -312,7 +321,7 @@
 				var middle = height/2;
 				ctx.beginPath();
 				ctx.lineWidth = 2;
-				ctx.strokeStyle = "#000";
+				ctx.strokeStyle = this.__primaryColor;
 
 				// if we have more width than datapoints, draw per datapoint.
 				// otherwise, draw per pixel.
@@ -342,12 +351,12 @@
 				if (this.__speedMultiplier !== 1 || this.__dragging === true) {
 					ctx.beginPath();
 					var y = height - height*(this.__speedMultiplier/2);
-					ctx.strokeStyle = "#711";
+					ctx.strokeStyle = "#700";
 					ctx.moveTo(0,y);
 					ctx.lineTo(width,y);
 					ctx.stroke();
 					ctx.font = '22px Monospace';
-					ctx.fillStyle = "#711";
+					ctx.fillStyle = "#700";
 					ctx.fillText("SPEED MULT: " + this.__speedMultiplier.toFixed(4),10,y-10);
 				}
 			},
