@@ -91,7 +91,8 @@
 			 * The user has initated a change in playback speed.
 			 */
 			_onMouseDown: function (e) {
-				if (e.target !== $("canvas") || 
+				if (e.which !== 1 || // only work for leftclick
+						e.target !== $("canvas") || 
 						this.__context.currentTime < this.__introEndTime) {
 					return;
 				}
