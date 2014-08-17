@@ -193,12 +193,15 @@
 
 				this.downloadSongMetaData(this.__directory);
 
-				soundsToLoad.forEach(function (name, i) {
+				this.__loadingRequests = soundsToLoad.map(function (name, i) {
 					var req = new XMLHttpRequest();
 					req.open('GET', name, true);
 					req.responseType = 'arraybuffer';
 
 					req.onload = function () {
+						if (req.status >= 400 && req.status <= 600) {
+							return req.onerror();
+						}
 						console.debug("Finished downloading", i==0 ? "intro" : "loop");
 						this.__context.decodeAudioData(req.response, function (buffer) {
 							console.debug("Finished decoding", i==0 ? "intro" : "loop");
@@ -209,9 +212,16 @@
 							}
 						}.bind(this));
 					}.bind(this);
-					req.send();
-				}, this);
 
+					req.onerror = function () {
+						clearInterval(this.__interval);
+						$('h3').innerHTML = "NETWORK ERROR :-(";
+						this.__loadingRequests.forEach(function (xhr) { xhr.abort(); });
+					}.bind(this);
+
+					req.send();
+					return req;
+				}, this);
 			},
 
 			/**
