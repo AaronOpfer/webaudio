@@ -91,13 +91,17 @@
 			 * The user has initated a change in playback speed.
 			 */
 			_onMouseDown: function (e) {
-				if (e.which !== 1 || // only work for leftclick
-						e.target !== $("canvas") || 
+				if ((e instanceof MouseEvent && e.which !== 1) || // only work for leftclick
+						e.target.nodeName === "SELECT" ||
+						e.target.nodeName === "A" ||
 						this.__context.currentTime < this.__introEndTime) {
 					return;
 				}
 				this.__dragging = true;
-				this._onMouseMove(e);
+
+				if (e instanceof MouseEvent) {
+					this._onMouseMove(e);
+				}
 			},
 
 			/**
@@ -109,6 +113,15 @@
 			},
 
 			/**
+			 * Sets the current playback speed.
+			 */
+			setPlaybackSpeed: function (speed) {
+				this.__speedMultiplier = speed;
+				this.__introSource.playbackRate.value = this.__speedMultiplier;
+				this.__loopSource.playbackRate.value = this.__speedMultiplier;
+			},
+
+			/**
 			 * Called when the mouse is moved in order to change the playback
 			 * speed.
 			 */
@@ -116,9 +129,8 @@
 				if (this.__dragging === false) {
 					return;
 				}
-				this.__speedMultiplier = ((wnd.innerHeight- e.pageY) / wnd.innerHeight) * 2;
-				this.__introSource.playbackRate.value = this.__speedMultiplier;
-				this.__loopSource.playbackRate.value = this.__speedMultiplier;
+				var pageY = (e instanceof MouseEvent) ? e.pageY : e.touches[0].pageY;
+				this.setPlaybackSpeed(((wnd.innerHeight- pageY) / wnd.innerHeight) * 2);
 				e.preventDefault();
 			},
 
@@ -132,6 +144,13 @@
 				wnd.addEventListener("mousedown", this._onMouseDown.bind(this), false);
 				wnd.addEventListener("mouseup", this._onMouseUp.bind(this), false);
 				wnd.addEventListener("mousemove", this._onMouseMove.bind(this), false);
+
+				if ('ontouchstart' in window) {
+					wnd.addEventListener("touchstart", this._onMouseDown.bind(this), false);
+					wnd.addEventListener("touchmove", this._onMouseMove.bind(this), false);
+					wnd.addEventListener("touchend", this._onMouseUp.bind(this), false);
+					wnd.addEventListener("touchcancel", this._onMouseUp.bind(this), false);
+				}
 			},
 
 			/**
