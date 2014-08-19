@@ -91,10 +91,11 @@
 			 * The user has initated a change in playback speed.
 			 */
 			_onMouseDown: function (e) {
-				if ((e instanceof MouseEvent && e.which !== 1) || // only work for leftclick
-						e.target.nodeName === "SELECT" ||
-						e.target.nodeName === "A" ||
-						this.__context.currentTime < this.__introEndTime) {
+				if ((e instanceof MouseEvent && e.which !== 1) // only work for leftclick
+				 || e.target.nodeName === "SELECT"
+				 || e.target.nodeName === "A"
+				 || e.target.nodeName === "LABEL"
+				 || this.__context.currentTime < this.__introEndTime) {
 					return;
 				}
 				this.__dragging = true;

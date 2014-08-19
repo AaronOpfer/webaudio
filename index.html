@@ -6,8 +6,7 @@
 <STYLE>
 body, html { background-color: rgb(22, 0, 26); margin: 0;margin-top: 30px; border: 0; font-family: 'Roboto', sans-serif; color: #aab; cursor: default; user-select: none; -webkit-user-select: none; -moz-user-select: none; }
 canvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1}
-#content { position: relative; z-index: 2; text-align: center; max-width: 320px; margin: auto; }
-
+#content { position: relative; z-index: 2; text-align: center; max-width: 600px; margin: auto; }
 h1, h2, h3 { text-align:center;}
 .social { border: 2px solid #556; border-radius: 7px; padding: 2px; margin: 4px; width: 24px; height: 24px; background-size: 24px; display: inline-block; background-position: center; background-repeat: no-repeat; background-color: rgba(22, 0, 26, 0.33) }
 .social:hover { border-color: #aab; }
@@ -16,13 +15,17 @@ h1, h2, h3 { text-align:center;}
 h1 { font-size: 42px; }
 #song { font-size: 32px; display: inline-block; font-weight: bold;}
 h3 { font-size: 22px; font-family: monospace; font-weight: 100; color: #778;}
-select { -moz-box-sizing: content-box; box-sizing: content-box; margin: 4px 0 0 -34px; background: transparent; color: #666; vertical-align: top; -webkit-appearance: none; text-indent:100%; white-space: nowrap; overflow: hidden; background: url('select.png') no-repeat center; background-size: 24px 24px; outline: 0; width: 24px; height: 24px; padding: 4px; border: 0; cursor: pointer; }
+select { -moz-box-sizing: content-box; box-sizing: content-box; background: transparent; color: #666; vertical-align: top; -webkit-appearance: none; text-indent:100%; white-space: nowrap; overflow: hidden; background: url('select.png') no-repeat 2px center; background-size: 24px 24px; outline: 0; position: absolute; width: 100%; margin: 0 0 0 -32px; height: 100%; border: 0; cursor: pointer;}
 select:hover { background-image: url('select-h.png'); }
+select:hover ~ #song { color: #FFF; }
+/*
 @media screen and (max-height: 700px) {
 	html,body { margin-top: 10px }
 	h1, h2, h3 { display: inline; margin: 0 10px; }
 }
+*/
 #preload { display: none }
+#controls { height: 48px; line-height: 48px; display: inline-block; position: relative; padding-left: 32px; margin-left: -32px; }
 </STYLE>
 <SCRIPT src="script.js"></SCRIPT>
 </HEAD>
@@ -34,7 +37,7 @@ select:hover { background-image: url('select-h.png'); }
 </DIV>
 <DIV id=content>
 	<H1>AARON OPFER</H1>
-	<DIV>
+	<DIV id=controls>
 		<select id=directory title="Change Tune">
 			<option value=punkish>PUNKISH</option>
 			<option value=dangerous>DANGEROUS ROAD</option>
