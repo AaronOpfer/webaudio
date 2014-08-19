@@ -21,10 +21,16 @@ select:hover { background-image: url('select-h.png'); }
 	html,body { margin-top: 10px }
 	h1, h2, h3 { display: inline; margin: 0 10px; }
 }
+#preload { display: none }
 </STYLE>
 <SCRIPT src="script.js"></SCRIPT>
 </HEAD>
 <BODY>
+<DIV id=preload>
+	<IMG src="select-h.png" onload="this.parentNode.removeChild(this)">
+	<IMG src="tw-h.png" onload="this.parentNode.removeChild(this)">
+	<IMG src="fb-h.png" onload="this.parentNode.removeChild(this)">
+</DIV>
 <DIV id=content>
 	<H1>AARON OPFER</H1>
 	<DIV>
