@@ -495,5 +495,5 @@
 	window,
 	document,
 	console || { log: function(){},debug: function (){}, warn: function(){}, error: function () {}},
-  (document.querySelector || function (){}).bind(document)
+	(document.querySelector || function (){}).bind(document)
 );
