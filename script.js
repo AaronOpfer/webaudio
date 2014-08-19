@@ -9,8 +9,8 @@
 	(function () {
 		// feature detection
 		if (!(wnd.AudioContext || wnd.webkitAudioContext)
-			|| !wnd.requestAnimationFrame
-			|| !doc.querySelector) {
+		 || !wnd.requestAnimationFrame
+		 || !doc.querySelector) {
 			wnd.addEventListener("load", this._onLoadNoFeatures.bind(this),false);
 		} else {
 			wnd.addEventListener("load", this._onLoad.bind(this),false);
