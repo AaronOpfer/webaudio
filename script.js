@@ -32,6 +32,7 @@
 			__secondaryColor: "#0000FF",
 			__directory: null,
 			__introEndTime: null,
+			__buffers: null,
 
 			/**
 			 * Handles the user selecting a different song from the dropdown list.
@@ -209,7 +210,7 @@
 
 				this.__directory = directory;
 				var soundsToLoad = [this.__directory+"/intro.ogg", this.__directory+"/loop.ogg"];
-				this.buffers = [null,null];
+				this.__buffers = [null,null];
 
 				this.downloadSongMetaData(this.__directory);
 
@@ -225,8 +226,8 @@
 						console.debug("Finished downloading", i==0 ? "intro" : "loop");
 						this.__context.decodeAudioData(req.response, function (buffer) {
 							console.debug("Finished decoding", i==0 ? "intro" : "loop");
-							this.buffers[i] = buffer;
-							if (this.buffers[0] && this.buffers[1]) {
+							this.__buffers[i] = buffer;
+							if (this.__buffers[0] && this.__buffers[1]) {
 								console.debug("All decoded, starting playback");
 								wnd.requestAnimationFrame(this.startPlayback.bind(this));
 							}
@@ -451,8 +452,8 @@
 				this.__introSource = this.__context.createBufferSource();
 				this.__loopSource = this.__context.createBufferSource();
 
-				this.__introSource.buffer = this.buffers[0];
-				this.__loopSource.buffer = this.buffers[1];
+				this.__introSource.buffer = this.__buffers[0];
+				this.__loopSource.buffer = this.__buffers[1];
 
 				this.__loopSource.connect(this.__gainNode);
 				this.__introSource.connect(this.__gainNode);
