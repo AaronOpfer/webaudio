@@ -33,6 +33,25 @@
 			__directory: null,
 			__introEndTime: null,
 			__buffers: null,
+			__canvasScope: null,
+			__canvasPeaks: null,
+			__contextScope: null,
+			__contextPeaks: null,
+
+			/**
+			 * Handles resizing canvases when the window size changes.
+			 */
+			_onResize: function () {
+				[this.__canvasScope,
+				 this.__canvasPeaks,
+				 this.__canvasSpeed
+				].forEach(function (canvas) {
+					this.setCanvasSize(canvas);
+				},this);
+				// reinitialize the canvases. We need to this because changing the
+				// canvas size appears to stroke colors
+				this.initializeCanvases();
+			},
 
 			/**
 			 * Handles the user selecting a different song from the dropdown list.
@@ -179,6 +198,13 @@
 				// add song change listener
 				$("#directory").addEventListener("change", this._onSongChange.bind(this), false);
 
+				// initialize the canvases
+				this.initializeCanvases();
+
+				// Listen for window resizing, and trigger an initial sizing
+				wnd.addEventListener("resize", this._onResize.bind(this), false);
+				this._onResize();
+
 				requestAnimationFrame(this._onAnimateFrame.bind(this));
 
 				// allocate a context
@@ -265,6 +291,7 @@
 						this.__primaryColor = "#000077";
 						this.__secondaryColor = "#0000FF";
 					}
+					this.__contextScope.strokeStyle = this.__primaryColor;
 
 				}.bind(this);
 				req.send();
@@ -291,7 +318,11 @@
 				function pad3(x) {
 					return x < 100 ? x < 10 ? "00"+x.toString() : "0"+x.toString() : x.toString();
 				}
-				$("h3").innerHTML = [pad2(hours),pad2(minutes),pad2(seconds),pad3(ms)].join(":");
+				if ($("#dots")) {
+					$("h3").removeChild($("#dots"));
+				}
+
+				$("h3").firstChild.nodeValue = [pad2(hours),pad2(minutes),pad2(seconds),pad3(ms)].join(":");
 			},
 
 			/**
@@ -325,7 +356,9 @@
 			_onAnimateFrame: function () {
 				this.__frameCount++;
 				this.updateTimer();
-				this.renderCanvas();
+				this.renderPeaks();
+				this.renderScope();
+				this.renderSpeed();
 				wnd.requestAnimationFrame(this._onAnimateFrame.bind(this));
 			},
 
@@ -353,14 +386,76 @@
 			},
 
 			/**
-			 * Renders the canvas element. This incldes a frequency band graph
-			 * as well as an oscilliator.
+			 * Ensures a canvas is the correct size for the current window.
 			 */
-			renderCanvas : function () {
-				var canvas = $('canvas');
-				var ctx = canvas.getContext('2d');
-				var width = canvas.width = wnd.innerWidth;
-				var height = canvas.height = wnd.innerHeight;
+			setCanvasSize: function (canvas) {
+				if (canvas.width !== canvas.clientWidth) {
+					canvas.width = canvas.clientWidth;
+				}
+				if (canvas.height !== canvas.clientHeight) {
+					canvas.height = canvas.clientHeight;
+				}
+			},
+
+			/**
+			 * Performs some one-time init for canvases. This prevents us
+			 * from doing these tasks inside the inner-loop, needlessly
+			 * wasting cycles.
+			 */
+			initializeCanvases: function () {
+				this.__canvasPeaks = $('canvas#peaks');
+				this.__contextPeaks = this.__canvasPeaks.getContext('2d');
+
+				this.__canvasScope = $('canvas#scope');
+				this.__contextScope = this.__canvasScope.getContext('2d');
+				this.__contextScope.strokeStyle = this.__primaryColor;
+
+				this.__canvasSpeed = $('canvas#speed');
+				this.__contextSpeed = this.__canvasSpeed.getContext('2d');
+			},
+
+			/**
+			 * Renders the song speed meter.
+			 */
+			renderSpeed: function () {
+				var canvas = this.__canvasSpeed;
+				if (this.__speedMultiplier === 1 && this.__dragging === false) {
+					if (canvas.style.display !== "none") {
+						canvas.style.display = "none";
+					}
+					return;
+				}
+				if (canvas.style.display === "none") {
+					canvas.style.display = "block";
+				}
+				var ctx = this.__contextSpeed;
+				var width = canvas.width;
+				var height = canvas.height;
+				var wndHeight = wnd.innerHeight;
+				ctx.fillStyle   = "#700";
+				ctx.strokeStyle = "#700";
+				ctx.font = '22px Monospace';
+
+				ctx.beginPath();
+				ctx.moveTo(0,height);
+				ctx.lineTo(width,height);
+				ctx.stroke();
+				ctx.clearRect(0, 0, width, height-1);
+				var topStyle = wndHeight- wndHeight*(this.__speedMultiplier/2) - height + "px";
+				if (canvas.style.top != topStyle) {
+					canvas.style.top = topStyle;
+				}
+				ctx.fillText("SPEED MULT: " + this.__speedMultiplier.toFixed(4),10,height-10);
+			},
+
+			/**
+			 * Renders the frequency peak graph.
+			 */
+			renderPeaks : function () {
+				var canvas = this.__canvasPeaks;
+				var ctx = this.__contextPeaks;
+				var width = canvas.width;
+				var height = canvas.height;
 				var barWidth = 10;
 				var barCount = Math.round(width / barWidth);
 
@@ -378,7 +473,8 @@
 					ctx.fillStyle = this.computeGradient(
 							parseInt(this.__secondaryColor.substring(1),16),
 							parseInt(this.__primaryColor.substring(1),16),
-							1-(magnitude/355)); // 355 keeps bars away from text
+							1-(magnitude/255));
+
 					ctx.fillRect(barWidth * i, height, barWidth - 2, -(magnitude/255*height));
 					if (!this.__peakData[i] || magnitude > this.__peakData[i]) {
 						this.__peakData[i] = magnitude;
@@ -387,21 +483,32 @@
 					}
 					ctx.fillRect(barWidth * i, height-this.__peakData[i]/255*height, barWidth -2, 2);
 				}
+			},
+
+			/**
+			 * Renders the oscilloscope.
+			 */
+			renderScope : function () {
+				var canvas = this.__canvasScope;
+				var ctx = this.__contextScope;
+				var width = canvas.width;
+				var height = canvas.height;
+
+				ctx.clearRect(0, 0, width, height);
 
 				var timeByteData = new Uint8Array(this.__scopeNode.frequencyBinCount);
 				this.__scopeNode.getByteTimeDomainData(timeByteData);
 
 				var middle = height/2;
-				ctx.beginPath();
 				ctx.lineWidth = 2;
-				ctx.strokeStyle = this.__primaryColor;
+				ctx.beginPath();
 
 				// if we have more width than datapoints, draw per datapoint.
 				// otherwise, draw per pixel.
 				if (width > timeByteData.length) {
-					for (i = 0; i < timeByteData.length; i++) {
+					for (var i = 0; i < timeByteData.length; i++) {
 						var pixel = Math.round(width*i/timeByteData.length);
-						var y = height - (middle + timeByteData[i]/256 * middle);
+						var y = height - (timeByteData[i]/128 * middle);
 						if (i==0) {
 							ctx.moveTo(pixel,y);
 						}
@@ -411,7 +518,7 @@
 					// more datapoints than pixels
 					for (i = 0; i < width; i++) {
 						// we can't show everything, so just show what we have
-						var y = height - (middle + timeByteData[i]/256 * middle);
+						var y = height - (timeByteData[i]/128 * middle);
 						if (i==0) {
 							ctx.moveTo(i,y);
 						}
@@ -420,18 +527,6 @@
 				}
 
 				ctx.stroke();
-
-				if (this.__speedMultiplier !== 1 || this.__dragging === true) {
-					ctx.beginPath();
-					var y = height - height*(this.__speedMultiplier/2);
-					ctx.strokeStyle = "#700";
-					ctx.moveTo(0,y);
-					ctx.lineTo(width,y);
-					ctx.stroke();
-					ctx.font = '22px Monospace';
-					ctx.fillStyle = "#700";
-					ctx.fillText("SPEED MULT: " + this.__speedMultiplier.toFixed(4),10,y-10);
-				}
 			},
 
 			/**

@@ -5,8 +5,11 @@
 <meta name="viewport" content="width=device-width, user-scalable=no">
 <STYLE>
 body, html { background-color: rgb(22, 0, 26); margin: 0;margin-top: 30px; border: 0; font-family: 'Roboto', sans-serif; color: #aab; cursor: default; user-select: none; -webkit-user-select: none; -moz-user-select: none; }
-canvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1}
-#content { position: relative; z-index: 2; text-align: center; max-width: 600px; margin: auto; }
+canvas { width: 100%; position: absolute; left: 0;}
+canvas#scope { z-index: 2; top: 10%; height: 40%;}
+canvas#peaks { z-index: 1; top: 30%; height: 70%;}
+canvas#speed { z-index: 3; top: 0; height: 40px;}
+#content { position: relative; z-index: 4; text-align: center; max-width: 600px; margin: auto; }
 h1, h2, h3 { text-align:center;}
 .social { border: 2px solid #556; border-radius: 7px; padding: 2px; margin: 4px; width: 24px; height: 24px; background-size: 24px; display: inline-block; background-position: center; background-repeat: no-repeat; background-color: rgba(22, 0, 26, 0.33) }
 .social:hover { border-color: #aab; }
@@ -48,6 +51,8 @@ select:hover ~ #song { color: #FFF; }
 	<H3>LOADING<SPAN id=dots>&nbsp;&nbsp;&nbsp;</SPAN></H3>
 	<a title="Share on Facebook" href="https://www.facebook.com/sharer/sharer.php" class=social id=fb target="_blank"></a><a title="Share on Twitter" href="https://twitter.com/share" class=social id=tw target="_blank"></a>
 </DIV>
-<CANVAS id=canvas></CANVAS>
+<CANVAS id=peaks></CANVAS>
+<CANVAS id=scope></CANVAS>
+<CANVAS id=speed></CANVAS>
 </BODY>
 </HTML>
