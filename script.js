@@ -205,7 +205,7 @@
 				wnd.addEventListener("resize", this._onResize.bind(this), false);
 				this._onResize();
 
-				requestAnimationFrame(this._onAnimateFrame.bind(this));
+				wnd.requestAnimationFrame(this._onAnimateFrame.bind(this));
 
 				// allocate a context
 				var AudioContext = wnd.AudioContext || wnd.webkitAudioContext;
