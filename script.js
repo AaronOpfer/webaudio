@@ -111,7 +111,7 @@
 			 * The user has initated a change in playback speed.
 			 */
 			_onMouseDown: function (e) {
-				if ((e instanceof MouseEvent && e.which !== 1) // only work for leftclick
+				if ((e instanceof wnd.MouseEvent && e.which !== 1) // only work for leftclick
 				 || e.target.nodeName === "SELECT"
 				 || e.target.nodeName === "A"
 				 || e.target.nodeName === "LABEL"
@@ -120,7 +120,7 @@
 				}
 				this.__dragging = true;
 
-				if (e instanceof MouseEvent) {
+				if (e instanceof wnd.MouseEvent) {
 					this._onMouseMove(e);
 				}
 			},
@@ -150,7 +150,7 @@
 				if (this.__dragging === false) {
 					return;
 				}
-				var pageY = (e instanceof MouseEvent) ? e.pageY : e.touches[0].pageY;
+				var pageY = (e instanceof wnd.MouseEvent) ? e.pageY : e.touches[0].pageY;
 				this.setPlaybackSpeed(((wnd.innerHeight- pageY) / wnd.innerHeight) * 2);
 				e.preventDefault();
 			},
@@ -166,7 +166,7 @@
 				wnd.addEventListener("mouseup", this._onMouseUp.bind(this), false);
 				wnd.addEventListener("mousemove", this._onMouseMove.bind(this), false);
 
-				if ('ontouchstart' in window) {
+				if ('ontouchstart' in wnd) {
 					wnd.addEventListener("touchstart", this._onMouseDown.bind(this), false);
 					wnd.addEventListener("touchmove", this._onMouseMove.bind(this), false);
 					wnd.addEventListener("touchend", this._onMouseUp.bind(this), false);
@@ -232,7 +232,7 @@
 			loadDirectory: function (directory) {
 				$('h3').innerHTML = "LOADING<SPAN id=dots>&nbsp;&nbsp;&nbsp;</SPAN>";
 				// display loading dots
-				this.__interval = setInterval(this._loadOnInterval.bind(this),111);
+				this.__interval = wnd.setInterval(this._loadOnInterval.bind(this),111);
 
 				this.__directory = directory;
 				var soundsToLoad = [this.__directory+"/intro.ogg", this.__directory+"/loop.ogg"];
@@ -261,7 +261,7 @@
 					}.bind(this);
 
 					req.onerror = function () {
-						clearInterval(this.__interval);
+						wnd.clearInterval(this.__interval);
 						$('h3').innerHTML = "NETWORK ERROR :-(";
 						this.__loadingRequests.forEach(function (xhr) { xhr.abort(); });
 					}.bind(this);
@@ -279,7 +279,7 @@
 			 *  whose metadata needs to be retrieved.
 			 */
 			downloadSongMetaData : function (directory) {
-				var req = new XMLHttpRequest();
+				var req = new wnd.XMLHttpRequest();
 				req.open('GET', directory+"/details.json", true);
 				req.onload = function () {
 					var data = JSON.parse(req.response);
