@@ -409,6 +409,7 @@
 				this.__canvasScope = $('canvas#scope');
 				this.__contextScope = this.__canvasScope.getContext('2d');
 				this.__contextScope.strokeStyle = this.__primaryColor;
+				this.__contextScope.fillStyle = "rgb(26,0,22)";
 
 				this.__canvasSpeed = $('canvas#speed');
 				this.__contextSpeed = this.__canvasSpeed.getContext('2d');
@@ -459,7 +460,8 @@
 				var barWidth = 10;
 				var barCount = Math.round(width / barWidth);
 
-				ctx.clearRect(0, 0, width, height);
+				ctx.fillStyle = "rgb(26,0,22)";
+				ctx.fillRect(0, 0, width, height);
 
 				var freqByteData = new Uint8Array(this.__scopeNode.frequencyBinCount);
 				this.__scopeNode.getByteFrequencyData(freqByteData);
@@ -494,7 +496,12 @@
 				var width = canvas.width;
 				var height = canvas.height;
 
-				ctx.clearRect(0, 0, width, height);
+				// The scope and the peaks are positioned such that the
+				// peaks never go above the middle line of the scope, so
+				// we can get away with painting background color on the
+				// top half of the scope
+				ctx.fillRect(0, 0, width, height/2);
+				ctx.clearRect(0, height/2, width, height - height/2);
 
 				var timeByteData = new Uint8Array(this.__scopeNode.frequencyBinCount);
 				this.__scopeNode.getByteTimeDomainData(timeByteData);
