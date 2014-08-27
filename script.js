@@ -501,6 +501,11 @@
 				var height = canvas.height;
 				var barWidth = 10;
 				var barCount = Math.round(width / barWidth);
+				var bytesPerBar = Math.floor(this.__scopeNode.frequencyBinCount / barCount);
+
+				// to keep the graph more interesting, we focus more on
+				// lower frequencies
+				bytesPerBar = Math.max(bytesPerBar-4,1);
 
 				ctx.fillStyle = "rgb(26,0,22)";
 				ctx.fillRect(0, 0, width, height);
@@ -513,7 +518,14 @@
 				}
 				
 				for (var i = 0; i < barCount; i++) {
-					var magnitude = freqByteData[i];
+					var magnitude = 0;
+					for (var j = 0; j < bytesPerBar; j++) {
+						magnitude += freqByteData[i*bytesPerBar + j];
+					}
+					// now that we avg, the peaks are much smaller, so we
+					// increase them by a factor here
+					magnitude /= bytesPerBar/1.33;
+
 					ctx.fillStyle = this.computeGradient(
 							parseInt(this.__secondaryColor.substring(1),16),
 							parseInt(this.__primaryColor.substring(1),16),
