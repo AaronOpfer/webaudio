@@ -608,6 +608,8 @@
 				}
 
 				this.__speedMultiplier = 1;
+				// clear the speed display if it is still there
+				this.renderSpeed();
 
 				this.__introSource = this.__context.createBufferSource();
 				this.__loopSource = this.__context.createBufferSource();
