@@ -33,6 +33,8 @@ select:hover ~ #title { color: #FFF; }
 #controls { height: 48px; line-height: 48px; display: inline-block; position: relative; padding-left: 32px; margin-left: -24px;  background: url('select.png') no-repeat 2px center; background-size: 24px 24px; }
 #controls:hover { background-image: url('select-h.png'); }
 option { color: black; background: white }
+#github { background: url("github.png"); height: 24px; width: 24px; opacity: 0.2; display: block; position: fixed; right: 4px; bottom: 4px; background-size: 24px 24px; z-index: 4; transition: opacity 1s;}
+#github:hover { opacity: 1; }
 </STYLE>
 <SCRIPT src="script.js"></SCRIPT>
 </HEAD>
@@ -58,5 +60,6 @@ option { color: black; background: white }
 <CANVAS id=peaks></CANVAS>
 <CANVAS id=scope></CANVAS>
 <CANVAS id=speed></CANVAS>
+<a href="http://github.com/AaronOpfer/webaudio/" title="See this project on GitHub" id="github" target="_blank"></a>
 </BODY>
 </HTML>
