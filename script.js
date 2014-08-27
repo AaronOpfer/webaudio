@@ -132,7 +132,9 @@
 			 */
 			_onMouseUp: function (e) {
 				this.__dragging = false;
-				e.preventDefault();
+				if (e instanceof wnd.MouseEvent) {
+					e.preventDefault();
+				}
 			},
 
 			/**
