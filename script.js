@@ -553,7 +553,7 @@
 					if (!this.__peakData[i] || magnitude > this.__peakData[i]) {
 						this.__peakData[i] = magnitude;
 					} else {
-						this.__peakData[i]-= 1 + (this.__frameCount%3==1); // descend at 1.33
+						this.__peakData[i]-= 1 + (this.__frameCount%3); // descend at 1.66
 					}
 					ctx.fillRect(barWidth * i, height-this.__peakData[i]/255*height, barWidth -2, 2);
 				}
