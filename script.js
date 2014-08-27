@@ -35,8 +35,10 @@
 			__buffers: null,
 			__canvasScope: null,
 			__canvasPeaks: null,
+			__canvasFavicon: document.createElement("canvas"),
 			__contextScope: null,
 			__contextPeaks: null,
+			__contextFavicon: null,
 
 			/**
 			 * Handles resizing canvases when the window size changes.
@@ -221,9 +223,13 @@
 				this.__scopeNode.connect(this.__context.destination);
 				this.__scopeNode.maxDecibels = -1;
 
+				// Create the favicon's canvas stuff
+				this.__canvasFavicon.width = this.__canvasFavicon.height = 16;
+				this.__contextFavicon = this.__canvasFavicon.getContext("2d");
+
 				var directory = "punkish";
-				if (wnd.location.search.length > 0) {
-					directory = wnd.location.search.substring(1);
+				if (wnd.location.hash.length > 2) {
+					directory = wnd.location.hash.substring(2);
 				}
 				this.loadDirectory(directory);
 			},
@@ -281,11 +287,17 @@
 			 *  whose metadata needs to be retrieved.
 			 */
 			downloadSongMetaData : function (directory) {
+				document.title = "Loading...";
 				var req = new wnd.XMLHttpRequest();
 				req.open('GET', directory+"/details.json", true);
 				req.onload = function () {
 					var data = JSON.parse(req.response);
-					$("#song").innerHTML = data.title;
+					var author = data.author || "Aaron Opfer";
+					var title = data.title || "Untitled?";
+					$("#title").innerHTML = title.toUpperCase();
+					$("#author").innerHTML = author.toUpperCase();
+					document.title = [title,author].join(" - ");
+					history.replaceState("",null,"#!"+directory);
 					if ('colors' in data) {
 						this.__primaryColor = data.colors.primary;
 						this.__secondaryColor = data.colors.secondary;
@@ -294,6 +306,7 @@
 						this.__secondaryColor = "#0000FF";
 					}
 					this.__contextScope.strokeStyle = this.__primaryColor;
+					this.__contextFavicon.fillStyle = this.__primaryColor;
 
 				}.bind(this);
 				req.send();
@@ -360,7 +373,32 @@
 				this.updateTimer();
 				this.renderPeaks();
 				this.renderScope();
+				this.renderFavicon();
 				wnd.requestAnimationFrame(this._onAnimateFrame.bind(this));
+			},
+
+			/**
+			 * Renders the favicon canvas. This is ridiculous.
+			 */
+			renderFavicon: function () {
+				var freqByteData = new Uint8Array(this.__scopeNode.frequencyBinCount);
+				this.__scopeNode.getByteFrequencyData(freqByteData);
+
+				var ctx = this.__contextFavicon;
+				ctx.fillStyle = "black";
+				ctx.fillRect(0,0,16,16);
+				ctx.fillStyle = "white";
+
+				var bytesPerPixel = freqByteData.length/8;
+				for (var j = 0; j < 8; j++) {
+					var magnitude = 0;
+					for (var k = 0; k < bytesPerPixel; k++) {
+						magnitude += freqByteData[j*bytesPerPixel + k];
+					}
+					var y = magnitude / (bytesPerPixel * 8);
+					ctx.fillRect(j*2,16-y,1,y);
+				}
+				$("#favicon").setAttribute('href',this.__canvasFavicon.toDataURL());
 			},
 
 			/**

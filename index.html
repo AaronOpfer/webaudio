@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <HTML>
 <HEAD>
+<TITLE>WebAudio Loop Machine - Aaron Opfer</TITLE>
 <link href='http://fonts.googleapis.com/css?family=Roboto:100' rel='stylesheet' type='text/css'>
+<link rel="icon" id="favicon">
 <meta name="viewport" content="width=device-width, user-scalable=no">
 <STYLE>
 body, html { background-color: rgb(22, 0, 26); margin: 0;margin-top: 30px; border: 0; font-family: 'Roboto', sans-serif; color: #aab; cursor: default; user-select: none; -webkit-user-select: none; -moz-user-select: none; }
@@ -16,11 +18,11 @@ h1, h2, h3 { text-align:center;}
 #fb { background-image: url('fb.png'); } #fb:hover { background-image: url('fb-h.png') }
 #tw { background-image: url('tw.png'); } #tw:hover { background-image: url('tw-h.png') }
 h1 { font-size: 42px; }
-#song { font-size: 32px; display: inline-block; font-weight: bold;}
+#title { font-size: 32px; display: inline-block; font-weight: bold;}
 h3 { font-size: 22px; font-family: monospace; font-weight: 100; color: #778;}
 select { -moz-box-sizing: content-box; box-sizing: content-box; background: transparent; color: #666; vertical-align: top; -webkit-appearance: none; text-indent:100%; white-space: nowrap; overflow: hidden; background: url('select.png') no-repeat 2px center; background-size: 24px 24px; outline: 0; position: absolute; width: 100%; margin: 0 0 0 -32px; height: 100%; border: 0; cursor: pointer;}
 select:hover { background-image: url('select-h.png'); }
-select:hover ~ #song { color: #FFF; }
+select:hover ~ #title { color: #FFF; }
 /*
 @media screen and (max-height: 700px) {
 	html,body { margin-top: 10px }
@@ -39,14 +41,14 @@ select:hover ~ #song { color: #FFF; }
 	<IMG src="fb-h.png" onload="this.parentNode.removeChild(this)">
 </DIV>
 <DIV id=content>
-	<H1>AARON OPFER</H1>
+	<H1 id="author">AARON OPFER</H1>
 	<DIV id=controls>
 		<select id=directory title="Change Tune">
 			<option value=punkish>PUNKISH</option>
 			<option value=dangerous>DANGEROUS ROAD</option>
 			<option value=simplicity>SOME SIMPLICITY</option>
 		</select>
-		<label id=song>...</label>
+		<label id="title"></label>
 	</DIV>
 	<H3>LOADING<SPAN id=dots>&nbsp;&nbsp;&nbsp;</SPAN></H3>
 	<a title="Share on Facebook" href="https://www.facebook.com/sharer/sharer.php" class=social id=fb target="_blank"></a><a title="Share on Twitter" href="https://twitter.com/share" class=social id=tw target="_blank"></a>
