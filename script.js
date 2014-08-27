@@ -118,6 +118,7 @@
 				 || e.target.nodeName === "SELECT"
 				 || e.target.nodeName === "A"
 				 || e.target.nodeName === "LABEL"
+				 || e.target.nodeName === "OPTION"
 				 || this.__context.currentTime < this.__introEndTime) {
 					return;
 				}
