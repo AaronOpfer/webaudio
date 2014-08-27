@@ -28,8 +28,8 @@
 			__speedMultiplier: 1,
 			__frameCount: 0,
 			__peakData: null,
-			__primaryColor: "#000077",
-			__secondaryColor: "#0000FF",
+			__primaryColor: "black",
+			__secondaryColor: "black",
 			__directory: null,
 			__introEndTime: null,
 			__buffers: null,
@@ -305,7 +305,7 @@
 						this.__primaryColor = data.colors.primary;
 						this.__secondaryColor = data.colors.secondary;
 					} else {
-						this.__primaryColor = "#000077";
+						this.__primaryColor = "#163AFF";
 						this.__secondaryColor = "#0000FF";
 					}
 					this.__contextScope.strokeStyle = this.__primaryColor;
