@@ -219,6 +219,8 @@
 
 				// Make the pluming
 				this.__scopeNode = this.__context.createAnalyser();
+				// Fix for a firefox bug: explicitly set scopeNode to stereo
+				this.__scopeNode.channelCount = 2;
 				this.__gainNode = this.__context.createGain();
 				this.__gainNode.connect(this.__scopeNode);
 				this.__scopeNode.connect(this.__context.destination);
