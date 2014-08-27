@@ -17,6 +17,9 @@
 		}
 	}).call(
 		{
+			__playing: null, // usually true/false, null during init
+			__barCount: null, // how many bars are on the peak canvas
+			__stoppedFrameCount: null,
 			__startTime: null,
 			__context: null,
 			__interval: null,
@@ -250,6 +253,8 @@
 			 * Starts the loading of the given musical selection
 			 */
 			loadDirectory: function (directory) {
+				this.__playing = false;
+				this.__stoppedFrameCount = this.__frameCount;
 				$('h3').innerHTML = "LOADING<SPAN id=dots>&nbsp;&nbsp;&nbsp;</SPAN>";
 				// display loading dots
 				this.__interval = wnd.setInterval(this._loadOnInterval.bind(this),111);
@@ -384,6 +389,9 @@
 				this.__frameCount++;
 				this.updateTimer();
 				this.renderPeaks();
+				if (this.__playing === false) {
+					this.synthesizeFakePeaks();
+				}
 				this.renderScope();
 				this.renderFavicon();
 				wnd.requestAnimationFrame(this._onAnimateFrame.bind(this));
@@ -518,7 +526,7 @@
 				var width = canvas.width;
 				var height = canvas.height;
 				var barWidth = 10;
-				var barCount = Math.round(width / barWidth);
+				var barCount = this.__barCount = Math.round(width / barWidth);
 				var bytesPerBar = Math.floor(this.__scopeNode.frequencyBinCount / barCount);
 
 				// to keep the graph more interesting, we focus more on
@@ -550,12 +558,28 @@
 							1-(magnitude/255));
 
 					ctx.fillRect(barWidth * i, height, barWidth - 2, -(magnitude/255*height));
-					if (!this.__peakData[i] || magnitude > this.__peakData[i]) {
-						this.__peakData[i] = magnitude;
-					} else {
-						this.__peakData[i]-= 1 + (this.__frameCount%3); // descend at 1.66
+					if (this.__playing || i < this.__endPeak) {
+						if (!this.__peakData[i] || magnitude > this.__peakData[i]) {
+							this.__peakData[i] = magnitude;
+						} else {
+							this.__peakData[i]-= 1 + (this.__playing&&this.__frameCount%3); // descend at 1.66
+						}
 					}
 					ctx.fillRect(barWidth * i, height-this.__peakData[i]/255*height, barWidth -2, 2);
+				}
+			},
+
+			/**
+			 * Turns the peak graph into a cool shape when playback has
+			 * stopped.
+			 */
+			synthesizeFakePeaks: function () {
+				var time = (this.__frameCount - this.__stoppedFrameCount)/2;
+
+				// turn peaks into a sine wave starting from the end.
+				var endPeak = this.__endPeak = Math.max(0,this.__peakData.length-(time/5));
+				for (var i = this.__peakData.length-1; i > endPeak; i--) {
+					this.__peakData[i] = 4*Math.ceil(((Math.sin((i-time)/15)+1)*16))+(i%2 ? 100:0);
 				}
 			},
 
@@ -617,6 +641,8 @@
 			 * components.
 			 */
 			startPlayback : function () {
+				this.__playing = true;
+
 				if (this.__introSource) {
 					this.__introSource.disconnect();
 				}
