@@ -478,20 +478,26 @@
 				var width = canvas.width;
 				var height = canvas.height;
 				var wndHeight = wnd.innerHeight;
-				ctx.fillStyle   = "#700";
-				ctx.strokeStyle = "#700";
+				ctx.fillStyle   = "rgba(26,0,22,0.33)";
+				ctx.clearRect(0,0,width,height);
+				ctx.fillRect(0, 0, width, height);
+				ctx.fillStyle   = "#aab";
+				ctx.strokeStyle = "#aab";
 				ctx.font = '22px Monospace';
 
 				ctx.beginPath();
 				ctx.moveTo(0,height);
 				ctx.lineTo(width,height);
 				ctx.stroke();
-				ctx.clearRect(0, 0, width, height-1);
-				var topStyle = wndHeight- wndHeight*(this.__speedMultiplier/2) - height + "px";
+				ctx.beginPath();
+				ctx.moveTo(0,0);
+				ctx.lineTo(width,0);
+				ctx.stroke();
+				var topStyle = Math.max(0,wndHeight- wndHeight*(this.__speedMultiplier/2) - height) + "px";
 				if (canvas.style.top != topStyle) {
 					canvas.style.top = topStyle;
 				}
-				ctx.fillText("SPEED MULT: " + this.__speedMultiplier.toFixed(4),10,height-10);
+				ctx.fillText("SPEED MULT: " + this.__speedMultiplier.toFixed(4),10,height-11);
 			},
 
 			/**
