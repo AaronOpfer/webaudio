@@ -20,7 +20,7 @@ h1, h2, h3 { text-align:center;}
 h1 { font-size: 42px; }
 #title { font-size: 32px; display: inline-block; font-weight: bold;}
 h3 { font-size: 22px; font-family: monospace; font-weight: 100; color: #778;}
-select { -moz-box-sizing: content-box; box-sizing: content-box; background: transparent; color: #666; vertical-align: top; -webkit-appearance: none; text-indent:100%; white-space: nowrap; overflow: hidden; background: url('select.png') no-repeat 2px center; background-size: 24px 24px; outline: 0; position: absolute; width: 100%; margin: 0 0 0 -32px; height: 100%; border: 0; cursor: pointer;}
+select { opacity: 0; -moz-box-sizing: content-box; box-sizing: content-box; vertical-align: top; -webkit-appearance: none; text-indent:100%; white-space: nowrap; overflow: hidden; position: absolute; width: 100%; margin:0; height: 100%; border: 0; cursor: pointer; margin-left: -32px;}
 select:hover { background-image: url('select-h.png'); }
 select:hover ~ #title { color: #FFF; }
 /*
@@ -30,7 +30,9 @@ select:hover ~ #title { color: #FFF; }
 }
 */
 #preload { display: none }
-#controls { height: 48px; line-height: 48px; display: inline-block; position: relative; padding-left: 32px; margin-left: -32px; }
+#controls { height: 48px; line-height: 48px; display: inline-block; position: relative; padding-left: 32px; margin-left: -24px;  background: url('select.png') no-repeat 2px center; background-size: 24px 24px; }
+#controls:hover { background-image: url('select-h.png'); }
+option { color: black; background: white }
 </STYLE>
 <SCRIPT src="script.js"></SCRIPT>
 </HEAD>
