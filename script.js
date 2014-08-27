@@ -43,11 +43,12 @@
 			 */
 			_onResize: function () {
 				[this.__canvasScope,
-				 this.__canvasPeaks,
-				 this.__canvasSpeed
+				 this.__canvasPeaks
 				].forEach(function (canvas) {
 					this.setCanvasSize(canvas);
 				},this);
+
+				this.__canvasSpeed.width = this.__canvasScope.clientWidth;
 				// reinitialize the canvases. We need to this because changing the
 				// canvas size appears to stroke colors
 				this.initializeCanvases();
@@ -140,6 +141,7 @@
 				this.__speedMultiplier = speed;
 				this.__introSource.playbackRate.value = this.__speedMultiplier;
 				this.__loopSource.playbackRate.value = this.__speedMultiplier;
+				this.renderSpeed();
 			},
 
 			/**
@@ -358,7 +360,6 @@
 				this.updateTimer();
 				this.renderPeaks();
 				this.renderScope();
-				this.renderSpeed();
 				wnd.requestAnimationFrame(this._onAnimateFrame.bind(this));
 			},
 
@@ -412,7 +413,10 @@
 				this.__contextScope.fillStyle = "rgb(26,0,22)";
 
 				this.__canvasSpeed = $('canvas#speed');
+				this.__canvasSpeed.height = 40;
 				this.__contextSpeed = this.__canvasSpeed.getContext('2d');
+
+				this.renderSpeed();
 			},
 
 			/**
