@@ -124,9 +124,7 @@
 				}
 				this.__dragging = true;
 
-				if (e instanceof wnd.MouseEvent) {
-					this._onMouseMove(e);
-				}
+				this._onMouseMove(e);
 			},
 
 			/**
@@ -141,6 +139,9 @@
 			 * Sets the current playback speed.
 			 */
 			setPlaybackSpeed: function (speed) {
+				if (speed <= 0) {
+					return;
+				}
 				this.__speedMultiplier = speed;
 				this.__introSource.playbackRate.value = this.__speedMultiplier;
 				this.__loopSource.playbackRate.value = this.__speedMultiplier;
@@ -155,7 +156,13 @@
 				if (this.__dragging === false) {
 					return;
 				}
-				var pageY = (e instanceof wnd.MouseEvent) ? e.pageY : e.touches[0].pageY;
+				var pageY;
+				if (e instanceof wnd.MouseEvent) {
+					pageY = e.pageY;
+				} else {
+					var touch = e.touches[0] || e.changedTouches[0];
+					pageY = touch.pageY;
+				}
 				this.setPlaybackSpeed(((wnd.innerHeight- pageY) / wnd.innerHeight) * 2);
 				e.preventDefault();
 			},
@@ -493,7 +500,7 @@
 				ctx.moveTo(0,0);
 				ctx.lineTo(width,0);
 				ctx.stroke();
-				var topStyle = Math.max(0,wndHeight- wndHeight*(this.__speedMultiplier/2) - height) + "px";
+				var topStyle = Math.min(Math.max(0,wndHeight- wndHeight*(this.__speedMultiplier/2) - height/2),wndHeight-height) + "px";
 				if (canvas.style.top != topStyle) {
 					canvas.style.top = topStyle;
 				}
