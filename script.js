@@ -418,7 +418,9 @@
 					this.synthesizeFakePeaks();
 				}
 				this.renderScope();
-				this.renderFavicon();
+				if (this.__frameCount%3==0) {
+					this.renderFavicon();
+				}
 				wnd.requestAnimationFrame(this._onAnimateFrame.bind(this));
 			},
 
