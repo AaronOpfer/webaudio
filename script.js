@@ -96,7 +96,9 @@
 
 				e.target.href = 
 					"https://twitter.com/share?text=" 
-					+ encodeURIComponent(tweetMessage);
+					+ encodeURIComponent(tweetMessage)
+					+ "&url="
+					+ encodeURIComponent(window.location.href);
 			},
 
 			/**
@@ -542,7 +544,7 @@
 				if (!this.__peakData || this.__peakData.length !== barCount) {
 					this.__peakData = Array(barCount);
 				}
-				
+
 				for (var i = 0; i < barCount; i++) {
 					var magnitude = 0;
 					for (var j = 0; j < bytesPerBar; j++) {
