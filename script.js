@@ -157,6 +157,7 @@
 				if (e instanceof wnd.MouseEvent) {
 					e.preventDefault();
 				}
+				this.renderSpeed();
 			},
 
 			/**
@@ -519,7 +520,9 @@
 				var width = canvas.width;
 				var height = canvas.height;
 				var wndHeight = wnd.innerHeight;
-				ctx.fillStyle   = "rgba(26,0,22,0.33)";
+				ctx.fillStyle   = "rgba(26,0,22,"
+					+ (this.__dragging ? "0.66" : "0.33")
+					+ ")";
 				ctx.clearRect(0,0,width,height);
 				ctx.fillRect(0, 0, width, height);
 				ctx.fillStyle   = "#aab";
