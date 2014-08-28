@@ -143,6 +143,7 @@
 					return;
 				}
 				this.__dragging = true;
+				this.__canvasSpeed.classList.add("dragging");
 
 				this._onMouseMove(e);
 			},
@@ -152,6 +153,7 @@
 			 */
 			_onMouseUp: function (e) {
 				this.__dragging = false;
+				this.__canvasSpeed.classList.remove("dragging");
 				if (e instanceof wnd.MouseEvent) {
 					e.preventDefault();
 				}
@@ -185,7 +187,9 @@
 					var touch = e.touches[0] || e.changedTouches[0];
 					pageY = touch.pageY;
 				}
-				this.setPlaybackSpeed(((wnd.innerHeight- pageY) / wnd.innerHeight) * 2);
+				this.setPlaybackSpeed(
+						Math.min(2,((wnd.innerHeight- pageY) / wnd.innerHeight) * 2)
+				);
 				e.preventDefault();
 			},
 
