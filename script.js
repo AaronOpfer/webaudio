@@ -74,6 +74,21 @@
 			},
 
 			/**
+			 * Called when the user clicks the reddit button. We don't share
+			 * the song we have selected so that discussion will be all in
+			 * the same thread.
+			 */
+			_onRedditClick: function (e) {
+				var shareUrl = wnd.location.href.substr(
+						0, 
+						wnd.location.href.length - wnd.location.hash.length
+				);
+				e.target.href =
+					  "//www.reddit.com/submit?url="
+					+ encodeURIComponent(shareUrl);
+			},
+
+			/**
 			 * Called when the twitter share button is clicked, and updates
 			 * the URL so that the tweet contains the current timestamp.
 			 */
@@ -213,6 +228,9 @@
 
 				// add tweet click listener
 				$("#tw").addEventListener("click", this._onTwitterClick.bind(this), false);
+
+				// add reddit click listener
+				$("#rd").addEventListener("click", this._onRedditClick.bind(this), false);
 
 				// add song change listener
 				$("#directory").addEventListener("change", this._onSongChange.bind(this), false);
