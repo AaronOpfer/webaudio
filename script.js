@@ -568,31 +568,43 @@
 				// lower frequencies
 				bytesPerBar = Math.max(bytesPerBar-4,1);
 
-				ctx.fillStyle = "rgb(26,0,22)";
-				ctx.fillRect(0, 0, width, height);
-
-				var freqByteData = new Uint8Array(this.__scopeNode.frequencyBinCount);
-				this.__scopeNode.getByteFrequencyData(freqByteData);
-
+				// allocate some vars
 				if (!this.__peakData || this.__peakData.length !== barCount) {
 					this.__peakData = Array(barCount);
 				}
 
+				var rects = [], highestPoint=0,lowestPoint=255;
+
+				// first we compute all of the rectangles that we want to paint
 				for (var i = 0; i < barCount; i++) {
 					var magnitude = 0;
 					for (var j = 0; j < bytesPerBar; j++) {
 						magnitude += freqByteData[i*bytesPerBar + j];
 					}
-					// now that we avg, the peaks are much smaller, so we
-					// increase them by a factor here
-					magnitude /= bytesPerBar/1.33;
+					// average out magnitude
+					magnitude /= bytesPerBar;
+					// then make it look bigger
+					magnitude *= 1.33;
+					// but not too big
+					magnitude = 0|Math.min(255,magnitude);
 
-					ctx.fillStyle = this.computeGradient(
-							parseInt(this.__secondaryColor.substring(1),16),
-							parseInt(this.__primaryColor.substring(1),16),
-							1-(magnitude/255));
+					// one of 16 colors
+					var color = 0|(magnitude/32);
 
-					ctx.fillRect(barWidth * i, height, barWidth - 2, -(magnitude/255*height));
+					rects.push([color,magnitude]);
+
+					// calculate the lowest y level we will paint over entirely
+					// thus no longer needing to erase that area
+					if (magnitude < lowestPoint) {
+						lowestPoint = magnitude;
+					}
+					// this works because peakdata is the magnitude of the previous
+					// frame which lets us figure out the erase ceiling
+					if (this.__peakData[i]+3 > highestPoint) {
+						highestPoint = this.__peakData[i]+3;
+					}
+					// update the peak's position for this frame
+					//
 					if (this.__playing || i < this.__endPeak) {
 						if (!this.__peakData[i] || magnitude > this.__peakData[i]) {
 							this.__peakData[i] = magnitude;
@@ -600,7 +612,32 @@
 							this.__peakData[i]-= 1 + (this.__playing&&this.__frameCount%3); // descend at 1.66
 						}
 					}
-					ctx.fillRect(barWidth * i, height-this.__peakData[i]/255*height, barWidth -2, 2);
+				}
+				var ratio = height/255;
+
+				// perform optimized clear
+				ctx.fillStyle = "rgb(26,0,22)";
+				ctx.fillRect(0, 0|((255-highestPoint)*ratio), width, 0|((highestPoint-lowestPoint)*ratio));
+
+				// loop through all 16 colors and paint each bar
+				// that is that color
+				for (var color = 0; color < 16; color++) {
+					var usedColorYet = false;
+					for (var k = 0; k < rects.length; k++) {
+						if (rects[k][0] === color) {
+							if (!usedColorYet) {
+								ctx.fillStyle = this.computeGradient(
+									parseInt(this.__primaryColor.substring(1),16),
+									parseInt(this.__secondaryColor.substring(1),16),
+									color/16
+								);
+								usedColorYet = true;
+							}
+							var y = 0|(rects[k][1]*ratio);
+							ctx.fillRect(barWidth * k, height-y, barWidth - 2, y); //bar
+							ctx.fillRect(barWidth * k, height-(0|this.__peakData[k]*ratio), barWidth -2, 2); //peak
+						}
+					}
 				}
 			},
 
@@ -655,18 +692,28 @@
 					// If the slope difference is greather than 8 (3%)
 					return (i < width+1 && Math.abs(timeByteData[i]*2 - timeByteData[i-1] - timeByteData[i+1]) < 8);
 				}
-				while (i < timeByteData.length) {
-					var max_i = i+12; // look up to 12 points ahead (about 20%)
-					while(i < max_i && slopeTest(i)) {
-						i += 1;
+				if (widthPerByte > .75) {
+					while (i < timeByteData.length) {
+						var max_i = i+12; // look up to 12 points ahead (about 20%)
+						while(i < max_i && slopeTest(i)) {
+							i += 1;
+						}
+						ctx.lineTo(
+								0|(i* widthPerByte),
+								0|(timeByteData[i] * ratio)
+						);
+						i++;
 					}
-					ctx.lineTo(
-							i* widthPerByte,
-							timeByteData[i] * ratio
-					);
-					i++;
+				} else {
+					var bytesPerWidth = 1/widthPerByte;
+					while (i < width) {
+						ctx.lineTo(
+								i,
+								0|(timeByteData[Math.floor(i*bytesPerWidth)] * ratio)
+						);
+						i++;
+					}
 				}
-
 				ctx.stroke();
 			},
 
