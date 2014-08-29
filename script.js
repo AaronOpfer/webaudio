@@ -646,12 +646,12 @@
 			 * stopped.
 			 */
 			synthesizeFakePeaks: function () {
-				var time = (this.__frameCount - this.__stoppedFrameCount)/2;
+				var time = (this.__frameCount - this.__stoppedFrameCount);
 
 				// turn peaks into a sine wave starting from the end.
 				var endPeak = this.__endPeak = Math.max(0,this.__peakData.length-(time/5));
 				for (var i = this.__peakData.length-1; i > endPeak; i--) {
-					this.__peakData[i] = (Math.sin(((i-time)/15*(1+(i%2)))+(i%2)*Math.PI)+1)*(i%2 ? 75:50)+2;
+					this.__peakData[i] = (Math.sin(((i-time)/30*(1+(i%2))))+1)*(i%2 ? 75:50)+2;
 				}
 			},
 
