@@ -42,6 +42,8 @@
 			__contextScope: null,
 			__contextPeaks: null,
 			__contextFavicon: null,
+			__freqByteData: null, // don't keep reallocating this
+			__domTimer: null,
 
 			/**
 			 * Handles resizing canvases when the window size changes.
@@ -262,6 +264,7 @@
 				this.__gainNode.connect(this.__scopeNode);
 				this.__scopeNode.connect(this.__context.destination);
 				this.__scopeNode.maxDecibels = -1;
+				this.__freqByteData = new Uint8Array(this.__scopeNode.frequencyBinCount);
 
 				// Create the favicon's canvas stuff
 				this.__canvasFavicon.width = this.__canvasFavicon.height = 16;
@@ -362,6 +365,9 @@
 				if (!this.__startTime) {
 					return;
 				}
+				if (!this.__domTimer) {
+					this.__domTimer = $("h3");
+				}
 				var delta = new Date() - this.__startTime;
 				var ms = delta % 1000;
 				var seconds = (delta/1000)%60|0;
@@ -375,11 +381,13 @@
 				function pad3(x) {
 					return x < 100 ? x < 10 ? "00"+x.toString() : "0"+x.toString() : x.toString();
 				}
-				if ($("#dots")) {
-					$("h3").removeChild($("#dots"));
+
+				var dots = this.__domTimer.querySelector("#dots");
+				if (dots) {
+					this.__domTimer.removeChild(dots);
 				}
 
-				$("h3").firstChild.nodeValue = [pad2(hours),pad2(minutes),pad2(seconds),pad3(ms)].join(":");
+				this.__domTimer.firstChild.nodeValue = [pad2(hours),pad2(minutes),pad2(seconds),pad3(ms)].join(":");
 			},
 
 			/**
@@ -411,15 +419,16 @@
 			 * Dispatcher for on-frame-rendering activities.
 			 */
 			_onAnimateFrame: function () {
+				this.__scopeNode.getByteFrequencyData(this.__freqByteData);
 				this.__frameCount++;
 				this.updateTimer();
-				this.renderPeaks();
+				this.renderPeaks(this.__freqByteData);
 				if (this.__playing === false) {
 					this.synthesizeFakePeaks();
 				}
 				this.renderScope();
 				if (this.__frameCount%3==0) {
-					this.renderFavicon();
+					this.renderFavicon(this.__freqByteData);
 				}
 				wnd.requestAnimationFrame(this._onAnimateFrame.bind(this));
 			},
@@ -427,10 +436,7 @@
 			/**
 			 * Renders the favicon canvas. This is ridiculous.
 			 */
-			renderFavicon: function () {
-				var freqByteData = new Uint8Array(this.__scopeNode.frequencyBinCount);
-				this.__scopeNode.getByteFrequencyData(freqByteData);
-
+			renderFavicon: function (freqByteData) {
 				var ctx = this.__contextFavicon;
 				ctx.fillStyle = "black";
 				ctx.fillRect(0,0,16,16);
@@ -549,7 +555,7 @@
 			/**
 			 * Renders the frequency peak graph.
 			 */
-			renderPeaks : function () {
+			renderPeaks : function (freqByteData) {
 				var canvas = this.__canvasPeaks;
 				var ctx = this.__contextPeaks;
 				var width = canvas.width;
