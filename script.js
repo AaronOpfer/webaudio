@@ -651,7 +651,7 @@
 				// turn peaks into a sine wave starting from the end.
 				var endPeak = this.__endPeak = Math.max(0,this.__peakData.length-(time/5));
 				for (var i = this.__peakData.length-1; i > endPeak; i--) {
-					this.__peakData[i] = 4*Math.ceil(((Math.sin((i-time)/15)+1)*16))+(i%2 ? 100:0);
+					this.__peakData[i] = (Math.sin(((i-time)/15*(1+(i%2)))+(i%2)*Math.PI)+1)*(i%2 ? 75:50)+2;
 				}
 			},
 
