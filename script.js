@@ -44,8 +44,6 @@
 			__contextFavicon: null,
 			__freqByteData: null, // don't keep reallocating this
 			__domTimer: null,
-			__prevScopeLow: 0,
-			__prevScopeHigh: 0,
 
 			/**
 			 * Handles resizing canvases when the window size changes.
@@ -693,30 +691,26 @@
 				var ctx = this.__contextScope;
 				var width = canvas.width;
 				var height = canvas.height;
-				var middle = height/2;
 
-				var z = this.__frameCount%255;
-				ctx.fillStyle = "rgb("+[z,z,z].join(',')+")";
 				// The scope and the peaks are positioned such that the
 				// peaks never go above the middle line of the scope, so
 				// we can get away with painting background color on the
 				// top half of the scope
-				//ctx.fillRect(0, , width, -this.__prevScopeLow);
-				ctx.clearRect(0, this.__prevScopeLow-5, width, this.__prevScopeHigh-this.__prevScopeLow+10);
+				ctx.fillRect(0, 0, width, height/2);
+				ctx.clearRect(0, height/2, width, height - height/2);
 
 				var timeByteData = new Uint8Array(this.__scopeNode.frequencyBinCount);
 				this.__scopeNode.getByteTimeDomainData(timeByteData);
 
 
 				// Some state initialization
+				var middle = height/2;
 				var ratio = middle/128;
 				ctx.lineWidth = 2;
 				ctx.beginPath();
 				var i = 1;
 				ctx.moveTo(0, timeByteData[0] * ratio);
 				var widthPerByte = width/timeByteData.length;
-
-				var lowPoint=height, highPoint=0;
 
 				// This function is for reducing the amount of points we ask
 				// the canvas to draw. By looking ahead and behind a point, we
@@ -732,33 +726,23 @@
 						while(i < max_i && slopeTest(i)) {
 							i += 1;
 						}
-						var y = 0|(timeByteData[i] * ratio);
-						if (y > highPoint) {
-							highPoint = y;
-						}
-						if (y < lowPoint) {
-							lowPoint = y;
-						}
-						ctx.lineTo(0|(i* widthPerByte), y);
+						ctx.lineTo(
+								0|(i* widthPerByte),
+								0|(timeByteData[i] * ratio)
+						);
 						i++;
 					}
 				} else {
 					var bytesPerWidth = 1/widthPerByte;
 					while (i < width) {
-						var y = 0|(timeByteData[Math.floor(i*bytesPerWidth)] * ratio);
-						if (y > highPoint) {
-							highPoint = y;
-						}
-						if (y < lowPoint) {
-							lowPoint = y;
-						}
-						ctx.lineTo(i,y);
+						ctx.lineTo(
+								i,
+								0|(timeByteData[Math.floor(i*bytesPerWidth)] * ratio)
+						);
 						i++;
 					}
 				}
 				ctx.stroke();
-				this.__prevScopeLow = lowPoint;
-				this.__prevScopeHigh = highPoint;
 			},
 
 			/**
