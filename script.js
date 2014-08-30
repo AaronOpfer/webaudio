@@ -702,44 +702,29 @@
 				var timeByteData = new Uint8Array(this.__scopeNode.frequencyBinCount);
 				this.__scopeNode.getByteTimeDomainData(timeByteData);
 
-
-				// Some state initialization
 				var middle = height/2;
-				var ratio = middle/128;
 				ctx.lineWidth = 2;
 				ctx.beginPath();
-				var i = 1;
-				ctx.moveTo(0, timeByteData[0] * ratio);
-				var widthPerByte = width/timeByteData.length;
-
-				// This function is for reducing the amount of points we ask
-				// the canvas to draw. By looking ahead and behind a point, we
-				// determine if this point is significantly different from the
-				// current linear slope enough to render.
-				function slopeTest(i) {
-					// If the slope difference is greather than 8 (3%)
-					return (i < width+1 && Math.abs(timeByteData[i]*2 - timeByteData[i-1] - timeByteData[i+1]) < 8);
-				}
-				if (widthPerByte > .75) {
-					while (i < timeByteData.length) {
-						var max_i = i+12; // look up to 12 points ahead (about 20%)
-						while(i < max_i && slopeTest(i)) {
-							i += 1;
+				// if we have more width than datapoints, draw per datapoint.
+				// otherwise, draw per pixel.
+				if (width > timeByteData.length) {
+					for (var i = 0; i < timeByteData.length; i++) {
+						var pixel = Math.round(width*i/timeByteData.length);
+						var y = height - (timeByteData[i]/128 * middle);
+						if (i==0) {
+							ctx.moveTo(pixel,y);
 						}
-						ctx.lineTo(
-								0|(i* widthPerByte),
-								0|(timeByteData[i] * ratio)
-						);
-						i++;
+						ctx.lineTo(pixel,y);
 					}
 				} else {
-					var bytesPerWidth = 1/widthPerByte;
-					while (i < width) {
-						ctx.lineTo(
-								i,
-								0|(timeByteData[Math.floor(i*bytesPerWidth)] * ratio)
-						);
-						i++;
+					// more datapoints than pixels
+					for (i = 0; i < width; i++) {
+						// we can't show everything, so just show what we have
+						var y = height - (timeByteData[i]/128 * middle);
+						if (i==0) {
+							ctx.moveTo(i,y);
+						}
+						ctx.lineTo(i,y);
 					}
 				}
 				ctx.stroke();
