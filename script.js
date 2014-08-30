@@ -501,7 +501,7 @@
 				this.__canvasScope = $('canvas#scope');
 				this.__contextScope = this.__canvasScope.getContext('2d');
 				this.__contextScope.strokeStyle = this.__primaryColor;
-				this.__contextScope.fillStyle = "rgb(26,0,22)";
+				this.__contextScope.fillStyle = "rgb(22,0,26)";
 
 				this.__canvasSpeed = $('canvas#speed');
 				this.__canvasSpeed.height = 40;
@@ -528,7 +528,7 @@
 				var width = canvas.width;
 				var height = canvas.height;
 				var wndHeight = wnd.innerHeight;
-				ctx.fillStyle   = "rgba(26,0,22,"
+				ctx.fillStyle   = "rgba(22,0,26,"
 					+ (this.__dragging ? "0.66" : "0.33")
 					+ ")";
 				ctx.clearRect(0,0,width,height);
@@ -581,7 +581,7 @@
 				var lowestPoints = [];
 				var b = 0; // b is for bar
 
-				ctx.fillStyle = "rgb(26,0,22)";
+				ctx.fillStyle = "rgb(22,0,26)";
 				// We divide the bars into multiple erase areas in order to optimize
 				// our erase call.
 				for (var e = 0; e < ERASE_AREAS; e++) {
