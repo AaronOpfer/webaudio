@@ -429,7 +429,7 @@
 					this.synthesizeFakePeaks();
 				}
 				this.renderScope();
-				if (this.__frameCount%3==0) {
+				if (this.__frameCount%4==0) {
 					this.renderFavicon(this.__freqByteData);
 				}
 				wnd.requestAnimationFrame(this._onAnimateFrame.bind(this));
@@ -575,51 +575,73 @@
 					this.__peakData = Array(barCount);
 				}
 
-				var rects = [], highestPoint=0,lowestPoint=255;
+				var rects = [],
+						prevRects = this.__prevRects,
+						ERASE_AREAS = 10;
 
-				// first we compute all of the rectangles that we want to paint
-				for (var i = 0; i < barCount; i++) {
-					var magnitude = 0;
-					for (var j = 0; j < bytesPerBar; j++) {
-						magnitude += freqByteData[i*bytesPerBar + j];
-					}
-					// average out magnitude
-					magnitude /= bytesPerBar;
-					// then make it look bigger
-					magnitude *= 1.33;
-					// but not too big
-					magnitude = 0|Math.min(255,magnitude);
+				// store the lowest point of each erase area
+				var lowestPoints = [];
+				var b = 0; // b is for bar
 
-					// one of 16 colors
-					var color = 0|(magnitude/32);
+				ctx.fillStyle = "rgb(26,0,22)";
+				// We divide the bars into multiple erase areas in order to optimize
+				// our erase call.
+				for (var e = 0; e < ERASE_AREAS; e++) {
+					var endBar = (e+1 === ERASE_AREAS) ? barCount : (b + (barCount/(ERASE_AREAS))),
+							startBar = b,
+						highestPoint=0,
+						lowestPoint=255;
 
-					rects.push([color,magnitude]);
+					// first we compute all of the rectangles that we want to paint
+					for (; b < endBar; b++) {
+						var magnitude = 0;
+						for (var j = 0; j < bytesPerBar; j++) {
+							magnitude += freqByteData[b*bytesPerBar + j];
+						}
+						// average out magnitude
+						magnitude /= bytesPerBar;
+						// then make it look bigger
+						magnitude *= 1.33;
+						// but not too big
+						magnitude = 0|Math.min(255,magnitude);
 
-					// calculate the lowest y level we will paint over entirely
-					// thus no longer needing to erase that area
-					if (magnitude < lowestPoint) {
-						lowestPoint = magnitude;
-					}
-					// this works because peakdata is the magnitude of the previous
-					// frame which lets us figure out the erase ceiling
-					if (this.__peakData[i]+3 > highestPoint) {
-						highestPoint = this.__peakData[i]+3;
-					}
-					// update the peak's position for this frame
-					//
-					if (this.__playing || i < this.__endPeak) {
-						if (!this.__peakData[i] || magnitude > this.__peakData[i]) {
-							this.__peakData[i] = magnitude;
-						} else {
-							this.__peakData[i]-= 1 + (this.__playing&&this.__frameCount%3); // descend at 1.66
+						// one of 16 colors
+						var color = 0|(magnitude/32);
+
+						rects.push([color,magnitude,e]);
+
+						// calculate the lowest y level we will paint over entirely
+						// thus no longer needing to erase that area
+						if (magnitude < lowestPoint) {
+							lowestPoint = magnitude;
+						}
+						// this works because peakdata is the magnitude of the previous
+						// frame which lets us figure out the erase ceiling
+						if (this.__peakData[b]+3 > highestPoint) {
+							highestPoint = this.__peakData[b]+3;
+						}
+						// update the peak's position for this frame
+						//
+						if (this.__playing || b < this.__endPeak) {
+							if (!this.__peakData[b] || magnitude > this.__peakData[b]) {
+								this.__peakData[b] = magnitude;
+							} else {
+								this.__peakData[b]-= 1 + (this.__playing&&this.__frameCount%3); // descend at 1.66
+							}
 						}
 					}
-				}
-				var ratio = height/255;
+					var ratio = height/255;
 
-				// perform optimized clear
-				ctx.fillStyle = "rgb(26,0,22)";
-				ctx.fillRect(0, 0|((255-highestPoint)*ratio), width, 0|((highestPoint-lowestPoint)*ratio));
+					if (highestPoint !== lowestPoint) {
+						ctx.fillRect(
+								startBar * barWidth,
+								0|((255-highestPoint)*ratio),
+								barWidth * (endBar+1 - startBar),
+								0|((highestPoint-lowestPoint)*ratio)
+						);
+					}
+					lowestPoints.push(lowestPoint);
+				}
 
 				// loop through all 16 colors and paint each bar
 				// that is that color
@@ -636,11 +658,17 @@
 								usedColorYet = true;
 							}
 							var y = 0|(rects[k][1]*ratio);
-							ctx.fillRect(barWidth * k, height-y, barWidth - 2, y); //bar
+							if (prevRects && prevRects.length > k && prevRects[k][0] === color) {
+								lowestPoint = lowestPoints[rects[k][2]];
+								ctx.fillRect(barWidth * k, height-y, barWidth - 2, y-0|(lowestPoint*ratio)); //bar
+							} else {
+								ctx.fillRect(barWidth * k, height-y, barWidth - 2, y); //bar
+							}
 							ctx.fillRect(barWidth * k, height-(0|this.__peakData[k]*ratio), barWidth -2, 2); //peak
 						}
 					}
 				}
+				this.__prevRects = rects;
 			},
 
 			/**
