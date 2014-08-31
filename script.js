@@ -563,6 +563,7 @@
 				var barWidth = 10;
 				var barCount = this.__barCount = Math.round(width / barWidth);
 				var bytesPerBar = Math.floor(this.__scopeNode.frequencyBinCount / barCount);
+				var ratio = height/255;
 
 				// to keep the graph more interesting, we focus more on
 				// lower frequencies
@@ -585,7 +586,7 @@
 				// We divide the bars into multiple erase areas in order to optimize
 				// our erase call.
 				for (var e = 0; e < ERASE_AREAS; e++) {
-					var endBar = (e+1 === ERASE_AREAS) ? barCount : (b + (barCount/(ERASE_AREAS))),
+					var endBar = (e+1 === ERASE_AREAS) ? barCount : 0|(b + (barCount/(ERASE_AREAS))),
 							startBar = b,
 						highestPoint=0,
 						lowestPoint=255;
@@ -626,15 +627,16 @@
 							} else {
 								this.__peakData[b]-= 1 + (this.__playing&&this.__frameCount%3); // descend at 1.66
 							}
+						} else {
+							highestPoint = 255;
 						}
 					}
-					var ratio = height/255;
 
 					if (highestPoint !== lowestPoint) {
 						ctx.fillRect(
 								startBar * barWidth,
 								0|((255-highestPoint)*ratio),
-								barWidth * (endBar+1 - startBar),
+								barWidth * (endBar - startBar),
 								0|((highestPoint-lowestPoint)*ratio)
 						);
 					}
