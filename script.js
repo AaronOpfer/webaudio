@@ -44,6 +44,7 @@
 			__contextFavicon: null,
 			__freqByteData: null, // don't keep reallocating this
 			__domTimer: null,
+			__loadingRequests: [],
 
 			/**
 			 * Handles resizing canvases when the window size changes.
@@ -281,6 +282,8 @@
 			 * Starts the loading of the given musical selection
 			 */
 			loadDirectory: function (directory) {
+				this.__loadingRequests.forEach(function (xhr) { xhr.abort(); });
+				wnd.clearInterval(this.__interval);
 				this.__playing = false;
 				this.__stoppedFrameCount = this.__frameCount;
 				$('h3').innerHTML = "LOADING<SPAN id=dots>&nbsp;&nbsp;&nbsp;</SPAN>";
@@ -304,6 +307,9 @@
 						}
 						console.debug("Finished downloading", i==0 ? "intro" : "loop");
 						this.__context.decodeAudioData(req.response, function (buffer) {
+							if (directory !== this.__directory) {
+								return;
+							}
 							console.debug("Finished decoding", i==0 ? "intro" : "loop");
 							this.__buffers[i] = buffer;
 							if (this.__buffers[0] && this.__buffers[1]) {
@@ -336,6 +342,9 @@
 				var req = new wnd.XMLHttpRequest();
 				req.open('GET', directory+"/details.json", true);
 				req.onload = function () {
+					if (directory !== this.__directory) {
+						return;
+					}
 					var data = JSON.parse(req.response);
 					var author = data.author || "Aaron Opfer";
 					var title = data.title || "Untitled?";
