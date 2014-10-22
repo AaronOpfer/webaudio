@@ -286,7 +286,14 @@
 				wnd.clearInterval(this.__interval);
 				this.__playing = false;
 				this.__stoppedFrameCount = this.__frameCount;
-				$('h3').innerHTML = "LOADING<SPAN id=dots>&nbsp;&nbsp;&nbsp;</SPAN>";
+				var flavor = "LOADING";
+				// Just hardcode these for now.
+				if (directory === "sweden") {
+					flavor = "GENERATING TERRAIN";
+				} else if (directory === "sim") {
+					flavor = "RETICULATING SPLINES";
+				}
+				$('h3').innerHTML = flavor + "<SPAN id=dots>&nbsp;&nbsp;&nbsp;</SPAN>";
 				// display loading dots
 				this.__interval = wnd.setInterval(this._loadOnInterval.bind(this),111);
 
@@ -774,6 +781,7 @@
 				this.__gainNode.gain.value = 1;
 
 				this.__loopSource.loop = true;
+				console.log("Intro segment duration:",this.__introSource.buffer.duration);
 				this.__introEndTime = this.__context.currentTime+this.__introSource.buffer.duration;
 				this.__introSource.start(this.__context.currentTime);
 				this.__loopSource.start(this.__introEndTime);
