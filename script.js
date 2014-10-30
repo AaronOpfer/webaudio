@@ -45,6 +45,7 @@
 			__freqByteData: null, // don't keep reallocating this
 			__domTimer: null,
 			__loadingRequests: [],
+			__barWidth: 10,
 
 			/**
 			 * Handles resizing canvases when the window size changes.
@@ -184,17 +185,35 @@
 				if (this.__dragging === false) {
 					return;
 				}
+				var pageX;
 				var pageY;
 				if (e instanceof wnd.MouseEvent) {
+					pageX = e.pageX;
 					pageY = e.pageY;
 				} else {
 					var touch = e.touches[0] || e.changedTouches[0];
+					pageX = touch.pageX;
 					pageY = touch.pageY;
 				}
-				this.setPlaybackSpeed(
-						Math.min(2,((wnd.innerHeight- pageY) / wnd.innerHeight) * 2)
-				);
+				if (e.shiftKey || e.ctrlKey) {
+					var oldWidth = this.__barWidth;
+					this.__barWidth = 3+Math.min(Math.max(0,(pageX/wnd.innerWidth)*40),40)|0;
+					if (oldWidth !== this.__barWidth) {
+						this._onResize();
+					}
+				} else {
+					this.setPlaybackSpeed(
+							Math.min(2,((wnd.innerHeight- pageY) / wnd.innerHeight) * 2)
+					);
+				}
 				e.preventDefault();
+			},
+
+			_onMouseWheel: function (e) {
+				if (this.__playing) {
+					this.__barWidth += (e.wheelDelta/100)|0;
+					this.__barWidth = Math.min(Math.max(3,this.__barWidth),40);
+				}
 			},
 
 			/**
@@ -242,6 +261,9 @@
 
 				// add song change listener
 				$("#directory").addEventListener("change", this._onSongChange.bind(this), false);
+
+				// Mouse wheel listener
+				wnd.addEventListener("mousewheel", this._onMouseWheel.bind(this), false);
 
 				// initialize the canvases
 				this.initializeCanvases();
@@ -576,7 +598,7 @@
 				var ctx = this.__contextPeaks;
 				var width = canvas.width;
 				var height = canvas.height;
-				var barWidth = 10;
+				var barWidth = this.__barWidth;
 				var barCount = this.__barCount = Math.round(width / barWidth);
 				var bytesPerBar = Math.floor(this.__scopeNode.frequencyBinCount / barCount);
 				var ratio = height/255;
@@ -585,20 +607,23 @@
 				// lower frequencies
 				bytesPerBar = Math.max(bytesPerBar-4,1);
 
-				// allocate some vars
-				if (!this.__peakData || this.__peakData.length !== barCount) {
-					this.__peakData = Array(barCount);
-				}
-
+				ctx.fillStyle = "rgb(22,0,26)";
 				var rects = [],
 						prevRects = this.__prevRects,
 						ERASE_AREAS = 10;
+
+				// allocate some vars
+				if (!this.__peakData || this.__peakData.length !== barCount) {
+					this.__peakData = Array(barCount);
+					prevRects = null;
+					ctx.fillRect(0,0,width,height);
+				}
+
 
 				// store the lowest point of each erase area
 				var lowestPoints = [];
 				var b = 0; // b is for bar
 
-				ctx.fillStyle = "rgb(22,0,26)";
 				// We divide the bars into multiple erase areas in order to optimize
 				// our erase call.
 				for (var e = 0; e < ERASE_AREAS; e++) {
